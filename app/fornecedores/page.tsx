@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import { Plus, Users, Pencil, Trash2 } from "lucide-react";
 import Modal from "../components/modal";
+import PageHeader from "../components/page-header";
+import DataTable, { Column } from "../components/data-table";
+import ConfirmModal from "../components/confirm-modal";
 
 interface Supplier {
   id: string;
@@ -18,6 +21,7 @@ export default function FornecedoresPage() {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
@@ -57,15 +61,16 @@ export default function FornecedoresPage() {
     setModalOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir este fornecedor?")) return;
-    const res = await fetch(`/api/suppliers/${id}`, { method: "DELETE" });
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    const res = await fetch(`/api/suppliers/${deleteId}`, { method: "DELETE" });
     if (res.ok) {
       fetchSuppliers();
     } else {
       const data = await res.json();
       alert(data.error || "Erro ao excluir");
     }
+    setDeleteId(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -111,217 +116,137 @@ export default function FornecedoresPage() {
     display: "block",
   };
 
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-      {/* Toolbar */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <p style={{ fontSize: "14px", color: "var(--text-secondary)" }}>
-          Gerencie os fornecedores do sistema
-        </p>
-        <button
-          onClick={openCreate}
+  const columns: Column<Supplier>[] = [
+    {
+      header: "Nome",
+      accessor: "name",
+      cell: (s) => (
+        <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>
+          {s.name}
+        </span>
+      ),
+    },
+    {
+      header: "CNPJ",
+      accessor: "cnpj",
+      cell: (s) => (
+        <span
           style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            padding: "10px 18px",
-            borderRadius: "var(--radius-md)",
-            background:
-              "linear-gradient(135deg, var(--accent-primary), #a855f7)",
-            color: "white",
-            fontSize: "13px",
-            fontWeight: 600,
-            border: "none",
-            cursor: "pointer",
-            boxShadow: "0 2px 8px rgba(99, 102, 241, 0.3)",
+            color: "var(--text-muted)",
+            fontFamily: "monospace",
+            fontSize: "12px",
           }}
         >
-          <Plus size={18} />
-          Novo Fornecedor
-        </button>
-      </div>
-
-      {/* Table */}
-      <div
-        style={{
-          background: "var(--bg-card)",
-          borderRadius: "var(--radius-lg)",
-          border: "1px solid var(--border-color)",
-          overflow: "hidden",
-        }}
-      >
-        {loading ? (
-          <div
+          {s.cnpj || "—"}
+        </span>
+      ),
+    },
+    {
+      header: "E-mail",
+      accessor: "email",
+      cell: (s) => (
+        <span style={{ color: "var(--text-secondary)" }}>{s.email || "—"}</span>
+      ),
+    },
+    {
+      header: "Telefone",
+      accessor: "phone",
+      cell: (s) => (
+        <span style={{ color: "var(--text-secondary)" }}>{s.phone || "—"}</span>
+      ),
+    },
+    {
+      header: "Pedidos",
+      cell: (s) => (
+        <span style={{ color: "var(--text-muted)" }}>
+          {s._count.purchaseOrders}
+        </span>
+      ),
+    },
+    {
+      header: "Ações",
+      align: "right",
+      cell: (s) => (
+        <div
+          style={{ display: "flex", gap: "6px", justifyContent: "flex-end" }}
+        >
+          <button
+            onClick={() => openEdit(s)}
             style={{
-              padding: "40px",
-              textAlign: "center",
-              color: "var(--text-muted)",
-            }}
-          >
-            Carregando...
-          </div>
-        ) : suppliers.length === 0 ? (
-          <div
-            style={{
-              padding: "60px 40px",
-              textAlign: "center",
+              width: 32,
+              height: 32,
+              borderRadius: "var(--radius-sm)",
+              border: "1px solid var(--border-color)",
+              background: "transparent",
               color: "var(--text-muted)",
               display: "flex",
-              flexDirection: "column",
               alignItems: "center",
-              gap: "12px",
+              justifyContent: "center",
+              cursor: "pointer",
             }}
           >
-            <Users size={40} strokeWidth={1} />
-            <p style={{ fontSize: "15px", fontWeight: 500 }}>
-              Nenhum fornecedor cadastrado
-            </p>
-          </div>
-        ) : (
-          <table
+            <Pencil size={14} />
+          </button>
+          <button
+            onClick={() => setDeleteId(s.id)}
             style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              fontSize: "13px",
+              width: 32,
+              height: 32,
+              borderRadius: "var(--radius-sm)",
+              border: "1px solid var(--border-color)",
+              background: "transparent",
+              color: "var(--accent-danger)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
             }}
           >
-            <thead>
-              <tr
-                style={{
-                  borderBottom: "1px solid var(--border-color)",
-                  background: "var(--bg-input)",
-                }}
-              >
-                {["Nome", "CNPJ", "E-mail", "Telefone", "Pedidos", "Ações"].map(
-                  (h) => (
-                    <th
-                      key={h}
-                      style={{
-                        padding: "12px 16px",
-                        textAlign: "left",
-                        fontWeight: 600,
-                        color: "var(--text-secondary)",
-                        fontSize: "12px",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.04em",
-                      }}
-                    >
-                      {h}
-                    </th>
-                  ),
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {suppliers.map((s) => (
-                <tr
-                  key={s.id}
-                  style={{
-                    borderBottom: "1px solid var(--border-color)",
-                    transition: "background 0.2s",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.background = "var(--bg-card-hover)")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.background = "transparent")
-                  }
-                >
-                  <td
-                    style={{
-                      padding: "14px 16px",
-                      fontWeight: 600,
-                      color: "var(--text-primary)",
-                    }}
-                  >
-                    {s.name}
-                  </td>
-                  <td
-                    style={{
-                      padding: "14px 16px",
-                      color: "var(--text-muted)",
-                      fontFamily: "monospace",
-                      fontSize: "12px",
-                    }}
-                  >
-                    {s.cnpj || "—"}
-                  </td>
-                  <td
-                    style={{
-                      padding: "14px 16px",
-                      color: "var(--text-secondary)",
-                    }}
-                  >
-                    {s.email || "—"}
-                  </td>
-                  <td
-                    style={{
-                      padding: "14px 16px",
-                      color: "var(--text-secondary)",
-                    }}
-                  >
-                    {s.phone || "—"}
-                  </td>
-                  <td
-                    style={{
-                      padding: "14px 16px",
-                      color: "var(--text-muted)",
-                    }}
-                  >
-                    {s._count.purchaseOrders}
-                  </td>
-                  <td style={{ padding: "14px 16px" }}>
-                    <div style={{ display: "flex", gap: "6px" }}>
-                      <button
-                        onClick={() => openEdit(s)}
-                        style={{
-                          width: 32,
-                          height: 32,
-                          borderRadius: "var(--radius-sm)",
-                          border: "1px solid var(--border-color)",
-                          background: "transparent",
-                          color: "var(--text-muted)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <Pencil size={14} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(s.id)}
-                        style={{
-                          width: 32,
-                          height: 32,
-                          borderRadius: "var(--radius-sm)",
-                          border: "1px solid var(--border-color)",
-                          background: "transparent",
-                          color: "var(--accent-danger)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+            <Trash2 size={14} />
+          </button>
+        </div>
+      ),
+    },
+  ];
 
-      {/* Modal */}
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+      <PageHeader
+        title="Fornecedores"
+        subtitle="Gerencie os fornecedores do sistema"
+        icon={Users}
+        action={
+          <button
+            onClick={openCreate}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "10px 18px",
+              borderRadius: "var(--radius-md)",
+              background:
+                "linear-gradient(135deg, var(--accent-primary), #a855f7)",
+              color: "white",
+              fontSize: "13px",
+              fontWeight: 600,
+              border: "none",
+              cursor: "pointer",
+              boxShadow: "0 2px 8px rgba(99, 102, 241, 0.3)",
+            }}
+          >
+            <Plus size={18} />
+            Novo Fornecedor
+          </button>
+        }
+      />
+
+      <DataTable
+        data={suppliers}
+        columns={columns}
+        isLoading={loading}
+        emptyMessage="Nenhum fornecedor cadastrado"
+      />
+
       <Modal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
@@ -436,6 +361,16 @@ export default function FornecedoresPage() {
           </div>
         </form>
       </Modal>
+
+      <ConfirmModal
+        isOpen={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        onConfirm={handleDelete}
+        title="Excluir Fornecedor"
+        message="Tem certeza que deseja excluir este fornecedor?"
+        isDestructive
+        confirmText="Excluir"
+      />
     </div>
   );
 }
