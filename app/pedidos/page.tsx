@@ -1,47 +1,38 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Plus, ShoppingBag } from "lucide-react";
 import Modal from "../components/modal";
 import PageHeader from "@/app/components/page-header";
 import OrderTable from "./components/order-table";
 import OrderForm from "./components/order-form";
 import OrderDetailModal from "./components/order-detail-modal";
-import { Product, SalesOrder, Customer } from "@/lib/types";
+import { useSalesOrders } from "@/app/hooks/use-sales-orders";
+import { useCustomers } from "@/app/hooks/use-customers";
+import { useProducts } from "@/app/hooks/use-products";
+import { SalesOrder } from "@/lib/types";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function PedidosPage() {
-  const [orders, setOrders] = useState<SalesOrder[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
   const [detailOrder, setDetailOrder] = useState<SalesOrder | null>(null);
   const [error, setError] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
-  const fetchOrders = async () => {
-    const url = statusFilter
-      ? `/api/sales-orders?status=${statusFilter}`
-      : "/api/sales-orders";
-    const res = await fetch(url);
-    const data = await res.json();
-    setOrders(data);
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchOrders();
-    fetch("/api/customers")
-      .then((r) => r.json())
-      .then(setCustomers);
-    fetch("/api/products")
-      .then((r) => r.json())
-      .then(setProducts);
-  }, []);
-
-  useEffect(() => {
-    fetchOrders();
-  }, [statusFilter]);
+  // Hooks
+  const { data: orders = [], isLoading: loadingOrders } =
+    useSalesOrders(statusFilter);
+  const { data: customers = [] } = useCustomers();
+  // For dropdowns, we might want all products or allow search.
+  // For now, let's fetch a reasonably large limit or implement searching in the dropdown later.
+  // The original code fetched /api/products without pagination?
+  // Checking original: fetch("/api/products") -> likely filtered by whatever default or all.
+  // Our useProducts defaults to limit 10. We might need a "fetchAll" or higher limit.
+  // Let's assume for now 100 is enough for dropdowns or we need a specific 'list' endpoint.
+  // For now I'll use a large limit.
+  const { data: productsData } = useProducts({ limit: 100 });
+  const products = productsData?.data || [];
 
   const handleSubmit = async (data: any) => {
     const items = data.items
@@ -65,11 +56,13 @@ export default function PedidosPage() {
 
     if (res.ok) {
       setModalOpen(false);
-      fetchOrders();
+      queryClient.invalidateQueries({ queryKey: ["sales-orders"] });
+      // Invalidate products as stock might change? No, stock changes on FATURADA status.
+      // But creating order doesn't change stock yet (PENDENTE).
     } else {
       const resData = await res.json();
       setError(resData.error || "Erro ao criar pedido");
-      throw new Error(resData.error);
+      throw new Error(resData.error); // Or just set error state
     }
   };
 
@@ -80,7 +73,8 @@ export default function PedidosPage() {
       body: JSON.stringify({ status }),
     });
     if (res.ok) {
-      fetchOrders();
+      queryClient.invalidateQueries({ queryKey: ["sales-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["products"] }); // Stock update
       setDetailOrder(null);
     } else {
       const data = await res.json();
@@ -92,7 +86,7 @@ export default function PedidosPage() {
     if (!confirm("Excluir este pedido de venda?")) return;
     const res = await fetch(`/api/sales-orders/${id}`, { method: "DELETE" });
     if (res.ok) {
-      fetchOrders();
+      queryClient.invalidateQueries({ queryKey: ["sales-orders"] });
     } else {
       const data = await res.json();
       alert(data.error || "Erro ao excluir");
@@ -155,7 +149,7 @@ export default function PedidosPage() {
 
       <OrderTable
         orders={orders}
-        loading={loading}
+        loading={loadingOrders}
         onView={setDetailOrder}
         onUpdateStatus={updateStatus}
         onDelete={deleteOrder}

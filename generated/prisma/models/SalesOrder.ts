@@ -43,6 +43,7 @@ export type SalesOrderMinAggregateOutputType = {
   notes: string | null
   createdAt: Date | null
   updatedAt: Date | null
+  deletedAt: Date | null
 }
 
 export type SalesOrderMaxAggregateOutputType = {
@@ -54,6 +55,7 @@ export type SalesOrderMaxAggregateOutputType = {
   notes: string | null
   createdAt: Date | null
   updatedAt: Date | null
+  deletedAt: Date | null
 }
 
 export type SalesOrderCountAggregateOutputType = {
@@ -65,6 +67,7 @@ export type SalesOrderCountAggregateOutputType = {
   notes: number
   createdAt: number
   updatedAt: number
+  deletedAt: number
   _all: number
 }
 
@@ -86,6 +89,7 @@ export type SalesOrderMinAggregateInputType = {
   notes?: true
   createdAt?: true
   updatedAt?: true
+  deletedAt?: true
 }
 
 export type SalesOrderMaxAggregateInputType = {
@@ -97,6 +101,7 @@ export type SalesOrderMaxAggregateInputType = {
   notes?: true
   createdAt?: true
   updatedAt?: true
+  deletedAt?: true
 }
 
 export type SalesOrderCountAggregateInputType = {
@@ -108,6 +113,7 @@ export type SalesOrderCountAggregateInputType = {
   notes?: true
   createdAt?: true
   updatedAt?: true
+  deletedAt?: true
   _all?: true
 }
 
@@ -206,6 +212,7 @@ export type SalesOrderGroupByOutputType = {
   notes: string | null
   createdAt: Date
   updatedAt: Date
+  deletedAt: Date | null
   _count: SalesOrderCountAggregateOutputType | null
   _avg: SalesOrderAvgAggregateOutputType | null
   _sum: SalesOrderSumAggregateOutputType | null
@@ -240,6 +247,7 @@ export type SalesOrderWhereInput = {
   notes?: Prisma.StringNullableFilter<"SalesOrder"> | string | null
   createdAt?: Prisma.DateTimeFilter<"SalesOrder"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SalesOrder"> | Date | string
+  deletedAt?: Prisma.DateTimeNullableFilter<"SalesOrder"> | Date | string | null
   customer?: Prisma.XOR<Prisma.CustomerScalarRelationFilter, Prisma.CustomerWhereInput>
   items?: Prisma.SalesOrderItemListRelationFilter
   receivable?: Prisma.XOR<Prisma.AccountsReceivableNullableScalarRelationFilter, Prisma.AccountsReceivableWhereInput> | null
@@ -254,6 +262,7 @@ export type SalesOrderOrderByWithRelationInput = {
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   customer?: Prisma.CustomerOrderByWithRelationInput
   items?: Prisma.SalesOrderItemOrderByRelationAggregateInput
   receivable?: Prisma.AccountsReceivableOrderByWithRelationInput
@@ -271,6 +280,7 @@ export type SalesOrderWhereUniqueInput = Prisma.AtLeast<{
   notes?: Prisma.StringNullableFilter<"SalesOrder"> | string | null
   createdAt?: Prisma.DateTimeFilter<"SalesOrder"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SalesOrder"> | Date | string
+  deletedAt?: Prisma.DateTimeNullableFilter<"SalesOrder"> | Date | string | null
   customer?: Prisma.XOR<Prisma.CustomerScalarRelationFilter, Prisma.CustomerWhereInput>
   items?: Prisma.SalesOrderItemListRelationFilter
   receivable?: Prisma.XOR<Prisma.AccountsReceivableNullableScalarRelationFilter, Prisma.AccountsReceivableWhereInput> | null
@@ -285,6 +295,7 @@ export type SalesOrderOrderByWithAggregationInput = {
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.SalesOrderCountOrderByAggregateInput
   _avg?: Prisma.SalesOrderAvgOrderByAggregateInput
   _max?: Prisma.SalesOrderMaxOrderByAggregateInput
@@ -304,6 +315,7 @@ export type SalesOrderScalarWhereWithAggregatesInput = {
   notes?: Prisma.StringNullableWithAggregatesFilter<"SalesOrder"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"SalesOrder"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"SalesOrder"> | Date | string
+  deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"SalesOrder"> | Date | string | null
 }
 
 export type SalesOrderCreateInput = {
@@ -314,6 +326,7 @@ export type SalesOrderCreateInput = {
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  deletedAt?: Date | string | null
   customer: Prisma.CustomerCreateNestedOneWithoutSalesOrdersInput
   items?: Prisma.SalesOrderItemCreateNestedManyWithoutSalesOrderInput
   receivable?: Prisma.AccountsReceivableCreateNestedOneWithoutSalesOrderInput
@@ -328,6 +341,7 @@ export type SalesOrderUncheckedCreateInput = {
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  deletedAt?: Date | string | null
   items?: Prisma.SalesOrderItemUncheckedCreateNestedManyWithoutSalesOrderInput
   receivable?: Prisma.AccountsReceivableUncheckedCreateNestedOneWithoutSalesOrderInput
 }
@@ -340,6 +354,7 @@ export type SalesOrderUpdateInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   customer?: Prisma.CustomerUpdateOneRequiredWithoutSalesOrdersNestedInput
   items?: Prisma.SalesOrderItemUpdateManyWithoutSalesOrderNestedInput
   receivable?: Prisma.AccountsReceivableUpdateOneWithoutSalesOrderNestedInput
@@ -354,6 +369,7 @@ export type SalesOrderUncheckedUpdateInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   items?: Prisma.SalesOrderItemUncheckedUpdateManyWithoutSalesOrderNestedInput
   receivable?: Prisma.AccountsReceivableUncheckedUpdateOneWithoutSalesOrderNestedInput
 }
@@ -367,6 +383,7 @@ export type SalesOrderCreateManyInput = {
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  deletedAt?: Date | string | null
 }
 
 export type SalesOrderUpdateManyMutationInput = {
@@ -377,6 +394,7 @@ export type SalesOrderUpdateManyMutationInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type SalesOrderUncheckedUpdateManyInput = {
@@ -388,6 +406,7 @@ export type SalesOrderUncheckedUpdateManyInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type SalesOrderListRelationFilter = {
@@ -409,6 +428,7 @@ export type SalesOrderCountOrderByAggregateInput = {
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
 }
 
 export type SalesOrderAvgOrderByAggregateInput = {
@@ -424,6 +444,7 @@ export type SalesOrderMaxOrderByAggregateInput = {
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
 }
 
 export type SalesOrderMinOrderByAggregateInput = {
@@ -435,6 +456,7 @@ export type SalesOrderMinOrderByAggregateInput = {
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  deletedAt?: Prisma.SortOrder
 }
 
 export type SalesOrderSumOrderByAggregateInput = {
@@ -524,6 +546,7 @@ export type SalesOrderCreateWithoutCustomerInput = {
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  deletedAt?: Date | string | null
   items?: Prisma.SalesOrderItemCreateNestedManyWithoutSalesOrderInput
   receivable?: Prisma.AccountsReceivableCreateNestedOneWithoutSalesOrderInput
 }
@@ -536,6 +559,7 @@ export type SalesOrderUncheckedCreateWithoutCustomerInput = {
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  deletedAt?: Date | string | null
   items?: Prisma.SalesOrderItemUncheckedCreateNestedManyWithoutSalesOrderInput
   receivable?: Prisma.AccountsReceivableUncheckedCreateNestedOneWithoutSalesOrderInput
 }
@@ -577,6 +601,7 @@ export type SalesOrderScalarWhereInput = {
   notes?: Prisma.StringNullableFilter<"SalesOrder"> | string | null
   createdAt?: Prisma.DateTimeFilter<"SalesOrder"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SalesOrder"> | Date | string
+  deletedAt?: Prisma.DateTimeNullableFilter<"SalesOrder"> | Date | string | null
 }
 
 export type SalesOrderCreateWithoutItemsInput = {
@@ -587,6 +612,7 @@ export type SalesOrderCreateWithoutItemsInput = {
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  deletedAt?: Date | string | null
   customer: Prisma.CustomerCreateNestedOneWithoutSalesOrdersInput
   receivable?: Prisma.AccountsReceivableCreateNestedOneWithoutSalesOrderInput
 }
@@ -600,6 +626,7 @@ export type SalesOrderUncheckedCreateWithoutItemsInput = {
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  deletedAt?: Date | string | null
   receivable?: Prisma.AccountsReceivableUncheckedCreateNestedOneWithoutSalesOrderInput
 }
 
@@ -627,6 +654,7 @@ export type SalesOrderUpdateWithoutItemsInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   customer?: Prisma.CustomerUpdateOneRequiredWithoutSalesOrdersNestedInput
   receivable?: Prisma.AccountsReceivableUpdateOneWithoutSalesOrderNestedInput
 }
@@ -640,6 +668,7 @@ export type SalesOrderUncheckedUpdateWithoutItemsInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   receivable?: Prisma.AccountsReceivableUncheckedUpdateOneWithoutSalesOrderNestedInput
 }
 
@@ -651,6 +680,7 @@ export type SalesOrderCreateWithoutReceivableInput = {
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  deletedAt?: Date | string | null
   customer: Prisma.CustomerCreateNestedOneWithoutSalesOrdersInput
   items?: Prisma.SalesOrderItemCreateNestedManyWithoutSalesOrderInput
 }
@@ -664,6 +694,7 @@ export type SalesOrderUncheckedCreateWithoutReceivableInput = {
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  deletedAt?: Date | string | null
   items?: Prisma.SalesOrderItemUncheckedCreateNestedManyWithoutSalesOrderInput
 }
 
@@ -691,6 +722,7 @@ export type SalesOrderUpdateWithoutReceivableInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   customer?: Prisma.CustomerUpdateOneRequiredWithoutSalesOrdersNestedInput
   items?: Prisma.SalesOrderItemUpdateManyWithoutSalesOrderNestedInput
 }
@@ -704,6 +736,7 @@ export type SalesOrderUncheckedUpdateWithoutReceivableInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   items?: Prisma.SalesOrderItemUncheckedUpdateManyWithoutSalesOrderNestedInput
 }
 
@@ -715,6 +748,7 @@ export type SalesOrderCreateManyCustomerInput = {
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  deletedAt?: Date | string | null
 }
 
 export type SalesOrderUpdateWithoutCustomerInput = {
@@ -725,6 +759,7 @@ export type SalesOrderUpdateWithoutCustomerInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   items?: Prisma.SalesOrderItemUpdateManyWithoutSalesOrderNestedInput
   receivable?: Prisma.AccountsReceivableUpdateOneWithoutSalesOrderNestedInput
 }
@@ -737,6 +772,7 @@ export type SalesOrderUncheckedUpdateWithoutCustomerInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   items?: Prisma.SalesOrderItemUncheckedUpdateManyWithoutSalesOrderNestedInput
   receivable?: Prisma.AccountsReceivableUncheckedUpdateOneWithoutSalesOrderNestedInput
 }
@@ -749,6 +785,7 @@ export type SalesOrderUncheckedUpdateManyWithoutCustomerInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 
@@ -791,6 +828,7 @@ export type SalesOrderSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  deletedAt?: boolean
   customer?: boolean | Prisma.CustomerDefaultArgs<ExtArgs>
   items?: boolean | Prisma.SalesOrder$itemsArgs<ExtArgs>
   receivable?: boolean | Prisma.SalesOrder$receivableArgs<ExtArgs>
@@ -806,6 +844,7 @@ export type SalesOrderSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  deletedAt?: boolean
   customer?: boolean | Prisma.CustomerDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["salesOrder"]>
 
@@ -818,6 +857,7 @@ export type SalesOrderSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  deletedAt?: boolean
   customer?: boolean | Prisma.CustomerDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["salesOrder"]>
 
@@ -830,9 +870,10 @@ export type SalesOrderSelectScalar = {
   notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  deletedAt?: boolean
 }
 
-export type SalesOrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "customerId" | "status" | "totalValue" | "notes" | "createdAt" | "updatedAt", ExtArgs["result"]["salesOrder"]>
+export type SalesOrderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "customerId" | "status" | "totalValue" | "notes" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["salesOrder"]>
 export type SalesOrderInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   customer?: boolean | Prisma.CustomerDefaultArgs<ExtArgs>
   items?: boolean | Prisma.SalesOrder$itemsArgs<ExtArgs>
@@ -862,6 +903,7 @@ export type $SalesOrderPayload<ExtArgs extends runtime.Types.Extensions.Internal
     notes: string | null
     createdAt: Date
     updatedAt: Date
+    deletedAt: Date | null
   }, ExtArgs["result"]["salesOrder"]>
   composites: {}
 }
@@ -1296,6 +1338,7 @@ export interface SalesOrderFieldRefs {
   readonly notes: Prisma.FieldRef<"SalesOrder", 'String'>
   readonly createdAt: Prisma.FieldRef<"SalesOrder", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"SalesOrder", 'DateTime'>
+  readonly deletedAt: Prisma.FieldRef<"SalesOrder", 'DateTime'>
 }
     
 

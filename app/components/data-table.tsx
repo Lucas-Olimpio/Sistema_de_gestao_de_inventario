@@ -43,7 +43,7 @@ export default function DataTable<T extends { id?: string }>({
     );
   }
 
-  if (data.length === 0) {
+  if (!data || data.length === 0) {
     return (
       <div
         style={{
@@ -110,7 +110,7 @@ export default function DataTable<T extends { id?: string }>({
             </tr>
           </thead>
           <tbody>
-            {data.map((item, rowIndex) => (
+            {(data || []).map((item, rowIndex) => (
               <tr
                 key={
                   keyExtractor

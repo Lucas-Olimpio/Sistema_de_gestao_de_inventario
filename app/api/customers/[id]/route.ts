@@ -58,7 +58,11 @@ export async function DELETE(
       );
     }
 
-    await prisma.customer.delete({ where: { id } });
+    // Soft delete
+    await prisma.customer.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting customer:", error);

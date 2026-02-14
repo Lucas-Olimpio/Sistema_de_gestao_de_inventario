@@ -6,7 +6,9 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
 
-    const where: Record<string, unknown> = {};
+    const where: Record<string, unknown> = {
+      deletedAt: null,
+    };
     if (status) where.status = status;
 
     const orders = await prisma.salesOrder.findMany({

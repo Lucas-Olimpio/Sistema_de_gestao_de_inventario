@@ -5,6 +5,7 @@ import Sidebar from "./components/sidebar";
 import Header from "./components/header";
 import { SidebarProvider } from "./components/sidebar-context";
 import LayoutShell from "./components/layout-shell";
+import Providers from "./providers";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -12,8 +13,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "InvenPro — Sistema de Gestão de Inventário",
-  description: "Sistema completo de gestão e controle de inventário",
+  title: "InvenPro",
 };
 
 export default function RootLayout({
@@ -24,15 +24,19 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={inter.variable}>
-        <SidebarProvider>
-          <div style={{ display: "flex", minHeight: "100vh" }}>
-            <Sidebar />
-            <LayoutShell>
-              <Header />
-              <main style={{ flex: 1, padding: "24px 28px" }}>{children}</main>
-            </LayoutShell>
-          </div>
-        </SidebarProvider>
+        <Providers>
+          <SidebarProvider>
+            <div style={{ display: "flex", minHeight: "100vh" }}>
+              <Sidebar />
+              <LayoutShell>
+                <Header />
+                <main style={{ flex: 1, padding: "24px 28px" }}>
+                  {children}
+                </main>
+              </LayoutShell>
+            </div>
+          </SidebarProvider>
+        </Providers>
       </body>
     </html>
   );

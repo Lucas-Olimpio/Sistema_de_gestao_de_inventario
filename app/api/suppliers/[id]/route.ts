@@ -47,7 +47,11 @@ export async function DELETE(
       );
     }
 
-    await prisma.supplier.delete({ where: { id } });
+    // Soft delete
+    await prisma.supplier.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting supplier:", error);

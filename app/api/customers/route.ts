@@ -7,15 +7,20 @@ export async function GET(request: Request) {
     const search = searchParams.get("search") || "";
 
     const customers = await prisma.customer.findMany({
-      where: search
-        ? {
-            OR: [
-              { name: { contains: search } },
-              { cpfCnpj: { contains: search } },
-              { email: { contains: search } },
-            ],
-          }
-        : undefined,
+      where: {
+        AND: [
+          search
+            ? {
+                OR: [
+                  { name: { contains: search } },
+                  { cpfCnpj: { contains: search } },
+                  { email: { contains: search } },
+                ],
+              }
+            : {},
+          { deletedAt: null },
+        ],
+      },
       include: { _count: { select: { salesOrders: true } } },
       orderBy: { createdAt: "desc" },
     });

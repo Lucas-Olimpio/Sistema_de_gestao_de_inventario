@@ -1,50 +1,72 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Plus, Search, Edit2, Trash2, Filter, Package } from "lucide-react";
 import { formatCurrency, formatDateShort } from "@/lib/utils";
 import PageHeader from "../components/page-header";
 import DataTable, { Column } from "../components/data-table";
 import ConfirmModal from "../components/confirm-modal";
-import StatusBadge from "../components/status-badge";
-import { Product, Category } from "@/lib/types";
+import { Product } from "@/lib/types";
+import { deleteProduct } from "@/app/produtos/actions";
+import { useProducts } from "@/app/hooks/use-products";
+import { useCategories } from "@/app/hooks/use-categories";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function ProdutosPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const fetchProducts = async () => {
-    const params = new URLSearchParams();
-    if (search) params.set("search", search);
-    if (categoryFilter) params.set("categoryId", categoryFilter);
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const limit = 10;
 
-    const res = await fetch(`/api/products?${params}`);
-    const data = await res.json();
-    setProducts(data);
-    setLoading(false);
-  };
+  // Hooks
+  const { data: productsData, isLoading } = useProducts({
+    page,
+    limit,
+    search,
+    categoryId: categoryFilter,
+  });
 
-  useEffect(() => {
-    fetch("/api/categories")
-      .then((r) => r.json())
-      .then(setCategories);
-  }, []);
+  const { data: categories = [] } = useCategories();
 
-  useEffect(() => {
-    const timer = setTimeout(fetchProducts, 300);
-    return () => clearTimeout(timer);
-  }, [search, categoryFilter]);
+  const products = productsData?.data || [];
+  const meta = productsData?.meta;
+  // Total items/pages comes from meta, default to 0/1 if loading/undefined
+  const totalItems = meta?.total || 0;
+  const totalPages = meta?.totalPages || 1;
 
   const handleDelete = async () => {
     if (!deleteId) return;
-    await fetch(`/api/products/${deleteId}`, { method: "DELETE" });
-    setDeleteId(null);
-    fetchProducts();
+
+    const result = await deleteProduct(deleteId);
+
+    if (result.success) {
+      setDeleteId(null);
+      // Invalidate query to refetch
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    } else {
+      alert("Erro ao excluir produto: " + result.message);
+    }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPage(newPage);
+    }
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    setPage(1); // Reset to page 1
+  };
+
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setCategoryFilter(e.target.value);
+    setPage(1); // Reset to page 1
   };
 
   const inputStyle: React.CSSProperties = {
@@ -55,6 +77,25 @@ export default function ProdutosPage() {
     color: "var(--text-primary)",
     fontSize: "13px",
     outline: "none",
+  };
+
+  const buttonStyle: React.CSSProperties = {
+    padding: "6px 12px",
+    borderRadius: "var(--radius-md)",
+    border: "1px solid var(--border-color)",
+    background: "var(--bg-card)",
+    color: "var(--text-primary)",
+    fontSize: "13px",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+  };
+
+  const disabledButtonStyle: React.CSSProperties = {
+    ...buttonStyle,
+    opacity: 0.5,
+    cursor: "not-allowed",
   };
 
   const columns: Column<Product>[] = [
@@ -220,7 +261,7 @@ export default function ProdutosPage() {
                   type="text"
                   placeholder="Buscar..."
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={handleSearchChange}
                   style={{
                     ...inputStyle,
                     border: "none",
@@ -237,7 +278,7 @@ export default function ProdutosPage() {
                 <Filter size={16} color="var(--text-muted)" />
                 <select
                   value={categoryFilter}
-                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  onChange={handleCategoryChange}
                   style={{
                     ...inputStyle,
                     cursor: "pointer",
@@ -283,9 +324,52 @@ export default function ProdutosPage() {
       <DataTable
         data={products}
         columns={columns}
-        isLoading={loading}
+        isLoading={isLoading}
         emptyMessage="Nenhum produto encontrado"
       />
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "12px 16px",
+          background: "var(--bg-card)",
+          borderRadius: "var(--radius-md)",
+          border: "1px solid var(--border-color)",
+        }}
+      >
+        <div style={{ fontSize: "13px", color: "var(--text-secondary)" }}>
+          Mostrando{" "}
+          <span style={{ color: "var(--text-primary)" }}>
+            {products.length}
+          </span>{" "}
+          de <span style={{ color: "var(--text-primary)" }}>{totalItems}</span>{" "}
+          produtos
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <button
+            onClick={() => handlePageChange(page - 1)}
+            disabled={page === 1}
+            style={page === 1 ? disabledButtonStyle : buttonStyle}
+          >
+            Anterior
+          </button>
+          <div style={{ fontSize: "13px", color: "var(--text-secondary)" }}>
+            Página <span style={{ color: "var(--text-primary)" }}>{page}</span>{" "}
+            de{" "}
+            <span style={{ color: "var(--text-primary)" }}>{totalPages}</span>
+          </div>
+          <button
+            onClick={() => handlePageChange(page + 1)}
+            disabled={page === totalPages}
+            style={page === totalPages ? disabledButtonStyle : buttonStyle}
+          >
+            Próxima
+          </button>
+        </div>
+      </div>
 
       <ConfirmModal
         isOpen={!!deleteId}

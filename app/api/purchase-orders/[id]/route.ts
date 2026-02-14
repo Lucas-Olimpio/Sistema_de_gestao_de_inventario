@@ -128,7 +128,11 @@ export async function DELETE(
       );
     }
 
-    await prisma.purchaseOrder.delete({ where: { id } });
+    // Soft delete
+    await prisma.purchaseOrder.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting purchase order:", error);

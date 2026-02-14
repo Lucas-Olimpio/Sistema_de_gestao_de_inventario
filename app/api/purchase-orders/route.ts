@@ -11,6 +11,8 @@ export async function GET(request: Request) {
       where.status = status;
     }
 
+    where.deletedAt = null;
+
     const orders = await prisma.purchaseOrder.findMany({
       where,
       include: {

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 export async function GET() {
   try {
     const suppliers = await prisma.supplier.findMany({
+      where: { deletedAt: null },
       orderBy: { name: "asc" },
       include: { _count: { select: { purchaseOrders: true } } },
     });

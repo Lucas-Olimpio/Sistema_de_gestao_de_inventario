@@ -1,6 +1,8 @@
 export interface Category {
   id: string;
   name: string;
+  description?: string | null;
+  createdAt?: string | Date;
   _count?: { products: number };
 }
 
@@ -8,6 +10,7 @@ export interface Product {
   id: string;
   name: string;
   sku: string;
+  description?: string | null;
   price: number;
   stock?: number; // Optional as some queries might not return it
   minStock?: number;
@@ -142,4 +145,14 @@ export interface DashboardData {
   };
   purchaseOrdersByStatus: Record<string, number>;
   salesOrdersByStatus: Record<string, number>;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }

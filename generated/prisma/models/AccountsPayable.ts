@@ -432,10 +432,6 @@ export type AccountsPayableUncheckedUpdateOneWithoutPurchaseOrderNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.AccountsPayableUpdateToOneWithWhereWithoutPurchaseOrderInput, Prisma.AccountsPayableUpdateWithoutPurchaseOrderInput>, Prisma.AccountsPayableUncheckedUpdateWithoutPurchaseOrderInput>
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type AccountsPayableCreateWithoutPurchaseOrderInput = {
   id?: string
   amount: number

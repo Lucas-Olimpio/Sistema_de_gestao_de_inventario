@@ -1,40 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Plus, Edit2, Trash2, Tags, Package } from "lucide-react";
 import Modal from "../components/modal";
 import PageHeader from "../components/page-header";
 import DataTable, { Column } from "../components/data-table";
 import ConfirmModal from "../components/confirm-modal";
+import { useCategories } from "@/app/hooks/use-categories";
+import { useQueryClient } from "@tanstack/react-query";
 
-interface Category {
-  id: string;
-  name: string;
-  description: string | null;
-  createdAt: string;
-  _count: { products: number };
-}
+import { Category } from "@/lib/types";
 
 export default function CategoriasPage() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [form, setForm] = useState({ name: "", description: "" });
-  const [packet, setPacket] = useState(false);
 
-  const fetchCategories = async () => {
-    const res = await fetch("/api/categories");
-    const data = await res.json();
-    setCategories(data);
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchCategories();
-  }, []);
+  const { data: categories = [], isLoading: loading } = useCategories();
 
   const openCreate = () => {
     setEditingCategory(null);
@@ -72,7 +57,7 @@ export default function CategoriasPage() {
     }
 
     setModalOpen(false);
-    fetchCategories();
+    queryClient.invalidateQueries({ queryKey: ["categories"] });
   };
 
   const handleDelete = async () => {
@@ -85,7 +70,7 @@ export default function CategoriasPage() {
       alert(data.error);
     }
     setDeleteId(null);
-    fetchCategories();
+    queryClient.invalidateQueries({ queryKey: ["categories"] });
   };
 
   const inputStyle: React.CSSProperties = {
@@ -120,8 +105,7 @@ export default function CategoriasPage() {
     },
     {
       header: "Descrição",
-      accessor: "description",
-      cell: (cat) => (
+      cell: (cat: Category) => (
         <span style={{ color: "var(--text-secondary)" }}>
           {cat.description || "—"}
         </span>
@@ -133,7 +117,8 @@ export default function CategoriasPage() {
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
           <Package size={14} color="var(--text-muted)" />
           <span style={{ color: "var(--text-secondary)", fontSize: "13px" }}>
-            {cat._count.products} produto{cat._count.products !== 1 ? "s" : ""}
+            {cat._count?.products || 0} produto
+            {(cat._count?.products || 0) !== 1 ? "s" : ""}
           </span>
         </div>
       ),

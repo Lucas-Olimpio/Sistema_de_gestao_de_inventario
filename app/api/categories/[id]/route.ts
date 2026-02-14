@@ -44,7 +44,11 @@ export async function DELETE(
       );
     }
 
-    await prisma.category.delete({ where: { id } });
+    // Soft delete
+    await prisma.category.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
     return NextResponse.json({ message: "Categoria deletada" });
   } catch (error) {
     console.error("Error deleting category:", error);

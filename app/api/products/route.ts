@@ -6,8 +6,14 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
     const categoryId = searchParams.get("categoryId") || "";
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const skip = (page - 1) * limit;
 
     const where: Record<string, unknown> = {};
+
+    // Soft delete filter
+    where.deletedAt = null;
 
     if (search) {
       where.OR = [
@@ -21,58 +27,30 @@ export async function GET(request: Request) {
       where.categoryId = categoryId;
     }
 
-    const products = await prisma.product.findMany({
-      where,
-      include: { category: true },
-      orderBy: { updatedAt: "desc" },
-    });
+    const [total, products] = await prisma.$transaction([
+      prisma.product.count({ where }),
+      prisma.product.findMany({
+        where,
+        include: { category: true },
+        orderBy: { updatedAt: "desc" },
+        skip,
+        take: limit,
+      }),
+    ]);
 
-    return NextResponse.json(products);
+    return NextResponse.json({
+      data: products,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
     console.error("Error fetching products:", error);
     return NextResponse.json(
       { error: "Erro ao buscar produtos" },
-      { status: 500 },
-    );
-  }
-}
-
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const { name, description, sku, price, quantity, minStock, categoryId } =
-      body;
-
-    if (!name || !sku || !price || !categoryId) {
-      return NextResponse.json(
-        { error: "Campos obrigatórios: nome, SKU, preço, categoria" },
-        { status: 400 },
-      );
-    }
-
-    const existing = await prisma.product.findUnique({ where: { sku } });
-    if (existing) {
-      return NextResponse.json({ error: "SKU já existe" }, { status: 409 });
-    }
-
-    const product = await prisma.product.create({
-      data: {
-        name,
-        description: description || null,
-        sku,
-        price: parseFloat(price),
-        quantity: parseInt(quantity) || 0,
-        minStock: parseInt(minStock) || 5,
-        categoryId,
-      },
-      include: { category: true },
-    });
-
-    return NextResponse.json(product, { status: 201 });
-  } catch (error) {
-    console.error("Error creating product:", error);
-    return NextResponse.json(
-      { error: "Erro ao criar produto" },
       { status: 500 },
     );
   }

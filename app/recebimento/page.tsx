@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ClipboardCheck, Package } from "lucide-react";
 import Modal from "../components/modal";
 import PageHeader from "@/app/components/page-header";
@@ -10,10 +10,12 @@ import ReceiptResult from "./components/receipt-result";
 import { PurchaseOrder } from "@/lib/types";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import StatusBadge from "@/app/components/status-badge";
+import { createGoodsReceiptAction } from "@/app/recebimento/actions";
+import { usePurchaseOrders } from "@/app/hooks/use-purchase-orders";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function RecebimentoPage() {
-  const [orders, setOrders] = useState<PurchaseOrder[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [receiveModalOpen, setReceiveModalOpen] = useState(false);
   const [resultModalOpen, setResultModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<PurchaseOrder | null>(
@@ -23,20 +25,14 @@ export default function RecebimentoPage() {
   const [result, setResult] = useState<any | null>(null);
   const [error, setError] = useState("");
 
-  const fetchOrders = async () => {
-    // Fetch orders that are ready for receiving (EM_TRANSITO or APROVADA)
-    const [res1, res2] = await Promise.all([
-      fetch("/api/purchase-orders?status=EM_TRANSITO"),
-      fetch("/api/purchase-orders?status=APROVADA"),
-    ]);
-    const [d1, d2] = await Promise.all([res1.json(), res2.json()]);
-    setOrders([...d1, ...d2]);
-    setLoading(false);
-  };
+  // Fetch orders with two statuses
+  const { data: transitOrders = [], isLoading: loadingTransit } =
+    usePurchaseOrders("EM_TRANSITO");
+  const { data: approvedOrders = [], isLoading: loadingApproved } =
+    usePurchaseOrders("APROVADA");
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
+  const orders = [...transitOrders, ...approvedOrders];
+  const loading = loadingTransit || loadingApproved;
 
   const openReceive = (order: PurchaseOrder) => {
     setSelectedOrder(order);
@@ -57,29 +53,38 @@ export default function RecebimentoPage() {
     if (!selectedOrder) return;
     setError("");
 
-    const res = await fetch("/api/goods-receipts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    try {
+      // Validate with Zod schema before sending
+      const payload = {
         purchaseOrderId: selectedOrder.id,
-        notes: null,
-        items,
-      }),
-    });
+        items: items.map((i) => ({
+          productId: i.productId,
+          receivedQty: parseInt(i.receivedQty) || 0,
+        })),
+      };
 
-    if (res.ok) {
-      const data = await res.json();
-      setResult({
-        ...data,
-      });
-      setReceiveModalOpen(false);
-      setResultModalOpen(true);
-      fetchOrders();
-    } else {
-      const data = await res.json();
-      const erroMsg = data.error || "Erro ao registrar recebimento";
-      setError(erroMsg);
-      throw new Error(erroMsg);
+      const result = await createGoodsReceiptAction(payload);
+
+      if (result.success) {
+        setResult({
+          receipt: {
+            id: "new",
+            purchaseOrderId: selectedOrder.id,
+            createdAt: new Date(),
+          },
+          divergences: [],
+        });
+        setReceiveModalOpen(false);
+        setResultModalOpen(true);
+        // Invalidate both lists
+        queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
+        // Also invalidate products since stock changed
+        queryClient.invalidateQueries({ queryKey: ["products"] });
+      } else {
+        setError(result.message || "Erro ao registrar recebimento");
+      }
+    } catch (e: any) {
+      setError(e.message || "Erro inesperado");
     }
   };
 
