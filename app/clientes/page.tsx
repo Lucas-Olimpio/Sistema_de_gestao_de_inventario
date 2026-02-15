@@ -1,127 +1,69 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Plus, UserCheck, Pencil, Trash2, Search } from "lucide-react";
 import Modal from "../components/modal";
 import PageHeader from "../components/page-header";
 import DataTable, { Column } from "../components/data-table";
 import ConfirmModal from "../components/confirm-modal";
-
-interface Customer {
-  id: string;
-  name: string;
-  cpfCnpj: string | null;
-  email: string | null;
-  phone: string | null;
-  address: string | null;
-  _count: { salesOrders: number };
-}
+import CustomerForm from "./components/customer-form";
+import { Customer } from "@/lib/types";
+import { useCustomers } from "@/app/hooks/use-customers";
 
 export default function ClientesPage() {
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingCustomer, setEditingCustomer] = useState<Customer | undefined>(
+    undefined,
+  );
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({
-    name: "",
-    cpfCnpj: "",
-    email: "",
-    phone: "",
-    address: "",
-  });
 
-  const fetchCustomers = async () => {
-    const params = new URLSearchParams();
-    if (search) params.set("search", search);
-    const res = await fetch(`/api/customers?${params}`);
-    const data = await res.json();
-    setCustomers(data);
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    const timer = setTimeout(fetchCustomers, 300);
-    return () => clearTimeout(timer);
-  }, [search]);
+  const {
+    data: customers = [],
+    isLoading,
+    createCustomer,
+    updateCustomer,
+    deleteCustomer,
+  } = useCustomers(search);
 
   const openCreate = () => {
-    setEditingId(null);
-    setForm({ name: "", cpfCnpj: "", email: "", phone: "", address: "" });
+    setEditingCustomer(undefined);
     setError("");
     setModalOpen(true);
   };
 
   const openEdit = (c: Customer) => {
-    setEditingId(c.id);
-    setForm({
-      name: c.name,
-      cpfCnpj: c.cpfCnpj || "",
-      email: c.email || "",
-      phone: c.phone || "",
-      address: c.address || "",
-    });
+    setEditingCustomer(c);
     setError("");
     setModalOpen(true);
   };
 
   const handleDelete = async () => {
     if (!deleteId) return;
-    const res = await fetch(`/api/customers/${deleteId}`, { method: "DELETE" });
-    if (res.ok) {
-      fetchCustomers();
-    } else {
-      const data = await res.json();
-      alert(data.error || "Erro ao excluir");
+    try {
+      await deleteCustomer.mutateAsync(deleteId);
+      setDeleteId(null);
+    } catch (err: any) {
+      alert(err.message || "Erro ao excluir");
     }
-    setDeleteId(null);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
+  const handleSubmit = async (data: Partial<Customer>) => {
     setError("");
-
-    const url = editingId ? `/api/customers/${editingId}` : "/api/customers";
-    const method = editingId ? "PUT" : "POST";
-
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-
-    if (res.ok) {
+    try {
+      if (editingCustomer) {
+        await updateCustomer.mutateAsync({ id: editingCustomer.id, data });
+      } else {
+        await createCustomer.mutateAsync(data);
+      }
       setModalOpen(false);
-      fetchCustomers();
-    } else {
-      const data = await res.json();
-      setError(data.error || "Erro ao salvar");
+    } catch (err: any) {
+      setError(err.message || "Erro ao salvar");
     }
-    setSaving(false);
   };
 
-  const inputStyle: React.CSSProperties = {
-    width: "100%",
-    padding: "10px 14px",
-    borderRadius: "var(--radius-md)",
-    border: "1px solid var(--border-color)",
-    background: "var(--bg-input)",
-    color: "var(--text-primary)",
-    fontSize: "14px",
-    outline: "none",
-  };
-
-  const labelStyle: React.CSSProperties = {
-    fontSize: "13px",
-    fontWeight: 600,
-    color: "var(--text-secondary)",
-    marginBottom: "6px",
-    display: "block",
-  };
+  const isSaving = createCustomer.isPending || updateCustomer.isPending;
 
   const columns: Column<Customer>[] = [
     {
@@ -166,7 +108,7 @@ export default function ClientesPage() {
       header: "Pedidos",
       cell: (c) => (
         <span style={{ color: "var(--text-muted)" }}>
-          {c._count.salesOrders}
+          {c._count?.salesOrders || 0}
         </span>
       ),
     },
@@ -286,7 +228,7 @@ export default function ClientesPage() {
       <DataTable
         data={customers}
         columns={columns}
-        isLoading={loading}
+        isLoading={isLoading}
         emptyMessage={
           search ? "Nenhum cliente encontrado" : "Nenhum cliente cadastrado"
         }
@@ -295,125 +237,16 @@ export default function ClientesPage() {
       <Modal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={editingId ? "Editar Cliente" : "Novo Cliente"}
+        title={editingCustomer ? "Editar Cliente" : "Novo Cliente"}
         maxWidth="520px"
       >
-        {error && (
-          <div
-            style={{
-              padding: "10px 14px",
-              borderRadius: "var(--radius-md)",
-              background: "var(--accent-danger-bg)",
-              color: "var(--accent-danger)",
-              fontSize: "13px",
-              marginBottom: "16px",
-            }}
-          >
-            {error}
-          </div>
-        )}
-        <form
+        <CustomerForm
+          initialData={editingCustomer}
           onSubmit={handleSubmit}
-          style={{ display: "flex", flexDirection: "column", gap: "16px" }}
-        >
-          <div>
-            <label style={labelStyle}>Nome *</label>
-            <input
-              required
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="Nome do cliente"
-              style={inputStyle}
-            />
-          </div>
-          <div>
-            <label style={labelStyle}>CPF / CNPJ</label>
-            <input
-              value={form.cpfCnpj}
-              onChange={(e) => setForm({ ...form, cpfCnpj: e.target.value })}
-              placeholder="000.000.000-00 ou 00.000.000/0000-00"
-              style={inputStyle}
-            />
-          </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: "12px",
-            }}
-          >
-            <div>
-              <label style={labelStyle}>E-mail</label>
-              <input
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                placeholder="email@exemplo.com"
-                style={inputStyle}
-              />
-            </div>
-            <div>
-              <label style={labelStyle}>Telefone</label>
-              <input
-                value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                placeholder="(11) 99999-9999"
-                style={inputStyle}
-              />
-            </div>
-          </div>
-          <div>
-            <label style={labelStyle}>Endereço</label>
-            <input
-              value={form.address}
-              onChange={(e) => setForm({ ...form, address: e.target.value })}
-              placeholder="Rua, número, cidade..."
-              style={inputStyle}
-            />
-          </div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              gap: "10px",
-              marginTop: "4px",
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => setModalOpen(false)}
-              style={{
-                padding: "9px 18px",
-                borderRadius: "var(--radius-md)",
-                border: "1px solid var(--border-color)",
-                background: "transparent",
-                color: "var(--text-secondary)",
-                fontSize: "13px",
-                cursor: "pointer",
-              }}
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              style={{
-                padding: "9px 18px",
-                borderRadius: "var(--radius-md)",
-                border: "none",
-                background:
-                  "linear-gradient(135deg, var(--accent-primary), #a855f7)",
-                color: "white",
-                fontSize: "13px",
-                fontWeight: 600,
-                cursor: saving ? "not-allowed" : "pointer",
-                opacity: saving ? 0.7 : 1,
-              }}
-            >
-              {saving ? "Salvando..." : editingId ? "Salvar" : "Criar"}
-            </button>
-          </div>
-        </form>
+          onCancel={() => setModalOpen(false)}
+          isLoading={isSaving}
+          error={error}
+        />
       </Modal>
 
       <ConfirmModal

@@ -137,10 +137,17 @@ export async function updateProduct(
 
 export async function deleteProduct(id: string) {
   try {
-    await prisma.product.update({
-      where: { id },
-      data: { deletedAt: new Date() },
-    });
+    const product = await prisma.product.findUnique({ where: { id } });
+
+    if (product) {
+      await prisma.product.update({
+        where: { id },
+        data: {
+          deletedAt: new Date(),
+          sku: `${product.sku}-DELETED-${Date.now()}`,
+        },
+      });
+    }
     revalidatePath("/produtos");
     return { success: true };
   } catch (error) {

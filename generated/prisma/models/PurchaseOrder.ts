@@ -27,11 +27,11 @@ export type AggregatePurchaseOrder = {
 }
 
 export type PurchaseOrderAvgAggregateOutputType = {
-  totalValue: number | null
+  totalValue: runtime.Decimal | null
 }
 
 export type PurchaseOrderSumAggregateOutputType = {
-  totalValue: number | null
+  totalValue: runtime.Decimal | null
 }
 
 export type PurchaseOrderMinAggregateOutputType = {
@@ -39,7 +39,7 @@ export type PurchaseOrderMinAggregateOutputType = {
   code: string | null
   supplierId: string | null
   status: string | null
-  totalValue: number | null
+  totalValue: runtime.Decimal | null
   notes: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -51,7 +51,7 @@ export type PurchaseOrderMaxAggregateOutputType = {
   code: string | null
   supplierId: string | null
   status: string | null
-  totalValue: number | null
+  totalValue: runtime.Decimal | null
   notes: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -208,7 +208,7 @@ export type PurchaseOrderGroupByOutputType = {
   code: string
   supplierId: string
   status: string
-  totalValue: number
+  totalValue: runtime.Decimal
   notes: string | null
   createdAt: Date
   updatedAt: Date
@@ -243,7 +243,7 @@ export type PurchaseOrderWhereInput = {
   code?: Prisma.StringFilter<"PurchaseOrder"> | string
   supplierId?: Prisma.StringFilter<"PurchaseOrder"> | string
   status?: Prisma.StringFilter<"PurchaseOrder"> | string
-  totalValue?: Prisma.FloatFilter<"PurchaseOrder"> | number
+  totalValue?: Prisma.DecimalFilter<"PurchaseOrder"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.StringNullableFilter<"PurchaseOrder"> | string | null
   createdAt?: Prisma.DateTimeFilter<"PurchaseOrder"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PurchaseOrder"> | Date | string
@@ -278,7 +278,7 @@ export type PurchaseOrderWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.PurchaseOrderWhereInput | Prisma.PurchaseOrderWhereInput[]
   supplierId?: Prisma.StringFilter<"PurchaseOrder"> | string
   status?: Prisma.StringFilter<"PurchaseOrder"> | string
-  totalValue?: Prisma.FloatFilter<"PurchaseOrder"> | number
+  totalValue?: Prisma.DecimalFilter<"PurchaseOrder"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.StringNullableFilter<"PurchaseOrder"> | string | null
   createdAt?: Prisma.DateTimeFilter<"PurchaseOrder"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PurchaseOrder"> | Date | string
@@ -314,7 +314,7 @@ export type PurchaseOrderScalarWhereWithAggregatesInput = {
   code?: Prisma.StringWithAggregatesFilter<"PurchaseOrder"> | string
   supplierId?: Prisma.StringWithAggregatesFilter<"PurchaseOrder"> | string
   status?: Prisma.StringWithAggregatesFilter<"PurchaseOrder"> | string
-  totalValue?: Prisma.FloatWithAggregatesFilter<"PurchaseOrder"> | number
+  totalValue?: Prisma.DecimalWithAggregatesFilter<"PurchaseOrder"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.StringNullableWithAggregatesFilter<"PurchaseOrder"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"PurchaseOrder"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"PurchaseOrder"> | Date | string
@@ -325,7 +325,7 @@ export type PurchaseOrderCreateInput = {
   id?: string
   code: string
   status?: string
-  totalValue?: number
+  totalValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -341,7 +341,7 @@ export type PurchaseOrderUncheckedCreateInput = {
   code: string
   supplierId: string
   status?: string
-  totalValue?: number
+  totalValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -355,7 +355,7 @@ export type PurchaseOrderUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -371,7 +371,7 @@ export type PurchaseOrderUncheckedUpdateInput = {
   code?: Prisma.StringFieldUpdateOperationsInput | string
   supplierId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -386,7 +386,7 @@ export type PurchaseOrderCreateManyInput = {
   code: string
   supplierId: string
   status?: string
-  totalValue?: number
+  totalValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -397,7 +397,7 @@ export type PurchaseOrderUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -409,7 +409,7 @@ export type PurchaseOrderUncheckedUpdateManyInput = {
   code?: Prisma.StringFieldUpdateOperationsInput | string
   supplierId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -563,7 +563,7 @@ export type PurchaseOrderCreateWithoutSupplierInput = {
   id?: string
   code: string
   status?: string
-  totalValue?: number
+  totalValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -577,7 +577,7 @@ export type PurchaseOrderUncheckedCreateWithoutSupplierInput = {
   id?: string
   code: string
   status?: string
-  totalValue?: number
+  totalValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -620,7 +620,7 @@ export type PurchaseOrderScalarWhereInput = {
   code?: Prisma.StringFilter<"PurchaseOrder"> | string
   supplierId?: Prisma.StringFilter<"PurchaseOrder"> | string
   status?: Prisma.StringFilter<"PurchaseOrder"> | string
-  totalValue?: Prisma.FloatFilter<"PurchaseOrder"> | number
+  totalValue?: Prisma.DecimalFilter<"PurchaseOrder"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.StringNullableFilter<"PurchaseOrder"> | string | null
   createdAt?: Prisma.DateTimeFilter<"PurchaseOrder"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PurchaseOrder"> | Date | string
@@ -631,7 +631,7 @@ export type PurchaseOrderCreateWithoutItemsInput = {
   id?: string
   code: string
   status?: string
-  totalValue?: number
+  totalValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -646,7 +646,7 @@ export type PurchaseOrderUncheckedCreateWithoutItemsInput = {
   code: string
   supplierId: string
   status?: string
-  totalValue?: number
+  totalValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -675,7 +675,7 @@ export type PurchaseOrderUpdateWithoutItemsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -690,7 +690,7 @@ export type PurchaseOrderUncheckedUpdateWithoutItemsInput = {
   code?: Prisma.StringFieldUpdateOperationsInput | string
   supplierId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -703,7 +703,7 @@ export type PurchaseOrderCreateWithoutGoodsReceiptsInput = {
   id?: string
   code: string
   status?: string
-  totalValue?: number
+  totalValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -718,7 +718,7 @@ export type PurchaseOrderUncheckedCreateWithoutGoodsReceiptsInput = {
   code: string
   supplierId: string
   status?: string
-  totalValue?: number
+  totalValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -747,7 +747,7 @@ export type PurchaseOrderUpdateWithoutGoodsReceiptsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -762,7 +762,7 @@ export type PurchaseOrderUncheckedUpdateWithoutGoodsReceiptsInput = {
   code?: Prisma.StringFieldUpdateOperationsInput | string
   supplierId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -775,7 +775,7 @@ export type PurchaseOrderCreateWithoutPayableInput = {
   id?: string
   code: string
   status?: string
-  totalValue?: number
+  totalValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -790,7 +790,7 @@ export type PurchaseOrderUncheckedCreateWithoutPayableInput = {
   code: string
   supplierId: string
   status?: string
-  totalValue?: number
+  totalValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -819,7 +819,7 @@ export type PurchaseOrderUpdateWithoutPayableInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -834,7 +834,7 @@ export type PurchaseOrderUncheckedUpdateWithoutPayableInput = {
   code?: Prisma.StringFieldUpdateOperationsInput | string
   supplierId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -847,7 +847,7 @@ export type PurchaseOrderCreateManySupplierInput = {
   id?: string
   code: string
   status?: string
-  totalValue?: number
+  totalValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -858,7 +858,7 @@ export type PurchaseOrderUpdateWithoutSupplierInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -872,7 +872,7 @@ export type PurchaseOrderUncheckedUpdateWithoutSupplierInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -886,7 +886,7 @@ export type PurchaseOrderUncheckedUpdateManyWithoutSupplierInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1016,7 +1016,7 @@ export type $PurchaseOrderPayload<ExtArgs extends runtime.Types.Extensions.Inter
     code: string
     supplierId: string
     status: string
-    totalValue: number
+    totalValue: runtime.Decimal
     notes: string | null
     createdAt: Date
     updatedAt: Date
@@ -1452,7 +1452,7 @@ export interface PurchaseOrderFieldRefs {
   readonly code: Prisma.FieldRef<"PurchaseOrder", 'String'>
   readonly supplierId: Prisma.FieldRef<"PurchaseOrder", 'String'>
   readonly status: Prisma.FieldRef<"PurchaseOrder", 'String'>
-  readonly totalValue: Prisma.FieldRef<"PurchaseOrder", 'Float'>
+  readonly totalValue: Prisma.FieldRef<"PurchaseOrder", 'Decimal'>
   readonly notes: Prisma.FieldRef<"PurchaseOrder", 'String'>
   readonly createdAt: Prisma.FieldRef<"PurchaseOrder", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"PurchaseOrder", 'DateTime'>

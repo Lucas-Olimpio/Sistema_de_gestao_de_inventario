@@ -1,14 +1,6 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import DashboardSkeleton from "./components/dashboard-skeleton";
-import PeriodFilter from "./components/dashboard/period-filter";
-import KPISection from "./components/dashboard/kpi-section";
-import ChartsSection from "./components/dashboard/charts-section";
-import LowStockList from "./components/dashboard/low-stock-list";
-import RecentMovements from "./components/dashboard/recent-movements";
-import AnimSection from "./components/anim-section";
-import { DashboardData, PeriodKey } from "@/lib/types";
+import { getDashboardData } from "@/lib/dashboard-data";
+import DashboardClient from "./dashboard-client";
+import { PeriodKey } from "@/lib/types";
 
 function getDateRange(period: PeriodKey): { from: string; to: string } {
   const today = new Date();
@@ -32,98 +24,33 @@ function getDateRange(period: PeriodKey): { from: string; to: string } {
       d.setFullYear(d.getFullYear() - 1);
       return { from: d.toISOString().split("T")[0], to };
     }
+    case "custom":
+      return { from: "", to: "" }; // Handled by searchParams directly
     default:
       return { from: to, to };
   }
 }
 
-function formatShortDate(dateStr: string) {
-  const [, m, d] = dateStr.split("-");
-  return `${d}/${m}`;
-}
+export default async function Dashboard({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  // Await searchParams (Next.js 15 requirement, good practice for future compatibility)
+  const params = await searchParams;
 
-export default function Dashboard() {
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [period, setPeriod] = useState<PeriodKey>("30d");
-  const [customFrom, setCustomFrom] = useState("");
-  const [customTo, setCustomTo] = useState("");
+  const period = (params.period as PeriodKey) || "30d";
+  let from = (params.from as string) || "";
+  let to = (params.to as string) || "";
 
-  useEffect(() => {
-    setLoading(true);
-
-    let from: string;
-    let to: string;
-
-    if (period === "custom") {
-      if (!customFrom || !customTo) {
-        setLoading(false);
-        return;
-      }
-      from = customFrom;
-      to = customTo;
-    } else {
-      const range = getDateRange(period);
-      from = range.from;
-      to = range.to;
-    }
-
-    fetch(`/api/dashboard?from=${from}&to=${to}`)
-      .then((res) => res.json())
-      .then((d) => {
-        setData(d);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [period, customFrom, customTo]);
-
-  if (loading && !data) {
-    return <DashboardSkeleton />;
+  if (period !== "custom") {
+    const range = getDateRange(period);
+    from = range.from;
+    to = range.to;
   }
 
-  if (!data) return null;
+  // Fetch data on the server
+  const data = await getDashboardData(from, to);
 
-  return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "24px",
-        opacity: loading ? 0.5 : 1,
-        transition: "opacity 0.3s ease",
-      }}
-    >
-      {/* Period Filter */}
-      <AnimSection delay={0}>
-        <PeriodFilter
-          period={period}
-          setPeriod={setPeriod}
-          customFrom={customFrom}
-          setCustomFrom={setCustomFrom}
-          customTo={customTo}
-          setCustomTo={setCustomTo}
-        />
-      </AnimSection>
-
-      {/* KPI Cards & Financial Overview */}
-      <KPISection data={data} />
-
-      {/* Charts (Timeline + Finance + Categories + Orders) */}
-      <ChartsSection data={data} formatShortDate={formatShortDate} />
-
-      {/* Lists (Low Stock + Recent Movements) */}
-      <AnimSection delay={480}>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "16px",
-          }}
-        >
-          <LowStockList items={data.lowStock} />
-          <RecentMovements movements={data.recentMovements} />
-        </div>
-      </AnimSection>
-    </div>
-  );
+  return <DashboardClient data={data} />;
 }

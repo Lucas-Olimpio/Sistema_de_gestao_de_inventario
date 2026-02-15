@@ -248,24 +248,75 @@ export default function LineChart({
             </svg>
 
             {/* X Labels (outside SVG to avoid scaling) */}
-            <div style={{ display: "flex", marginTop: "8px" }}>
-              {data.map((d, i) => (
-                <div
-                  key={i}
-                  style={{
-                    flex: 1,
-                    textAlign: "center",
-                    fontSize: "10px",
-                    color: "var(--text-muted)",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    padding: "0 1px",
-                  }}
-                >
-                  {d.label}
-                </div>
-              ))}
+            <div
+              style={{
+                position: "relative",
+                height: "20px",
+                marginTop: "8px",
+                width: "100%",
+              }}
+            >
+              {(() => {
+                const maxLabels = 6;
+                const showAll = data.length <= maxLabels;
+                const labels: { text: string; pct: number; index: number }[] =
+                  [];
+
+                if (showAll) {
+                  return data.map((d, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        position: "absolute",
+                        left: `${(i / (data.length - 1)) * 100}%`,
+                        transform: "translateX(-50%)",
+                        textAlign: "center",
+                        fontSize: "10px",
+                        color: "var(--text-muted)",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {d.label}
+                    </div>
+                  ));
+                }
+
+                // Sample labels for large datasets
+                const step = (data.length - 1) / (maxLabels - 1);
+                for (let i = 0; i < maxLabels; i++) {
+                  const index = Math.min(Math.round(i * step), data.length - 1);
+                  // Avoid duplicates (e.g. if data.length < maxLabels, covered by showAll check effectively but good safeguard)
+                  if (
+                    labels.length > 0 &&
+                    labels[labels.length - 1].index === index
+                  ) {
+                    continue;
+                  }
+
+                  labels.push({
+                    text: data[index].label,
+                    pct: (index / (data.length - 1)) * 100,
+                    index,
+                  });
+                }
+
+                return labels.map((l, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      position: "absolute",
+                      left: `${l.pct}%`,
+                      transform: "translateX(-50%)",
+                      textAlign: "center",
+                      fontSize: "10px",
+                      color: "var(--text-muted)",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {l.text}
+                  </div>
+                ));
+              })()}
             </div>
           </div>
         </div>

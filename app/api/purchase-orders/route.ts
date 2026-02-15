@@ -23,7 +23,16 @@ export async function GET(request: Request) {
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json(orders);
+    const safeOrders = orders.map((order) => ({
+      ...order,
+      totalValue: Number(order.totalValue),
+      items: order.items.map((item) => ({
+        ...item,
+        unitPrice: Number(item.unitPrice),
+      })),
+    }));
+
+    return NextResponse.json(safeOrders);
   } catch (error) {
     console.error("Error fetching purchase orders:", error);
     return NextResponse.json(
@@ -56,9 +65,10 @@ export async function POST(request: Request) {
     const code = `PO-${String(nextNumber).padStart(4, "0")}`;
 
     // Calculate total
+    // Calculate total
     const totalValue = items.reduce(
       (sum: number, item: { quantity: number; unitPrice: number }) =>
-        sum + item.quantity * item.unitPrice,
+        sum + item.quantity * Number(item.unitPrice),
       0,
     );
 

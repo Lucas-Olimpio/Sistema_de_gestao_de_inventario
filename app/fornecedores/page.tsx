@@ -1,120 +1,68 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Plus, Users, Pencil, Trash2 } from "lucide-react";
 import Modal from "../components/modal";
 import PageHeader from "../components/page-header";
 import DataTable, { Column } from "../components/data-table";
 import ConfirmModal from "../components/confirm-modal";
-
-interface Supplier {
-  id: string;
-  name: string;
-  cnpj: string | null;
-  email: string | null;
-  phone: string | null;
-  _count: { purchaseOrders: number };
-}
+import SupplierForm from "./components/supplier-form";
+import { Supplier } from "@/lib/types";
+import { useSuppliers } from "@/app/hooks/use-suppliers";
 
 export default function FornecedoresPage() {
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingSupplier, setEditingSupplier] = useState<Supplier | undefined>(
+    undefined,
+  );
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({
-    name: "",
-    cnpj: "",
-    email: "",
-    phone: "",
-  });
 
-  const fetchSuppliers = async () => {
-    const res = await fetch("/api/suppliers");
-    const data = await res.json();
-    setSuppliers(data);
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchSuppliers();
-  }, []);
+  const {
+    data: suppliers = [],
+    isLoading,
+    createSupplier,
+    updateSupplier,
+    deleteSupplier,
+  } = useSuppliers();
 
   const openCreate = () => {
-    setEditingId(null);
-    setForm({ name: "", cnpj: "", email: "", phone: "" });
+    setEditingSupplier(undefined);
     setError("");
     setModalOpen(true);
   };
 
   const openEdit = (s: Supplier) => {
-    setEditingId(s.id);
-    setForm({
-      name: s.name,
-      cnpj: s.cnpj || "",
-      email: s.email || "",
-      phone: s.phone || "",
-    });
+    setEditingSupplier(s);
     setError("");
     setModalOpen(true);
   };
 
   const handleDelete = async () => {
     if (!deleteId) return;
-    const res = await fetch(`/api/suppliers/${deleteId}`, { method: "DELETE" });
-    if (res.ok) {
-      fetchSuppliers();
-    } else {
-      const data = await res.json();
-      alert(data.error || "Erro ao excluir");
+    try {
+      await deleteSupplier.mutateAsync(deleteId);
+      setDeleteId(null);
+    } catch (err: any) {
+      alert(err.message || "Erro ao excluir");
     }
-    setDeleteId(null);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
+  const handleSubmit = async (data: Partial<Supplier>) => {
     setError("");
-
-    const url = editingId ? `/api/suppliers/${editingId}` : "/api/suppliers";
-    const method = editingId ? "PUT" : "POST";
-
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-
-    if (res.ok) {
+    try {
+      if (editingSupplier) {
+        await updateSupplier.mutateAsync({ id: editingSupplier.id, data });
+      } else {
+        await createSupplier.mutateAsync(data);
+      }
       setModalOpen(false);
-      fetchSuppliers();
-    } else {
-      const data = await res.json();
-      setError(data.error || "Erro ao salvar");
+    } catch (err: any) {
+      setError(err.message || "Erro ao salvar");
     }
-    setSaving(false);
   };
 
-  const inputStyle: React.CSSProperties = {
-    width: "100%",
-    padding: "10px 14px",
-    borderRadius: "var(--radius-md)",
-    border: "1px solid var(--border-color)",
-    background: "var(--bg-input)",
-    color: "var(--text-primary)",
-    fontSize: "14px",
-    outline: "none",
-  };
-
-  const labelStyle: React.CSSProperties = {
-    fontSize: "13px",
-    fontWeight: 600,
-    color: "var(--text-secondary)",
-    marginBottom: "6px",
-    display: "block",
-  };
+  const isSaving = createSupplier.isPending || updateSupplier.isPending;
 
   const columns: Column<Supplier>[] = [
     {
@@ -159,7 +107,7 @@ export default function FornecedoresPage() {
       header: "Pedidos",
       cell: (s) => (
         <span style={{ color: "var(--text-muted)" }}>
-          {s._count.purchaseOrders}
+          {s._count?.purchaseOrders || 0}
         </span>
       ),
     },
@@ -243,123 +191,23 @@ export default function FornecedoresPage() {
       <DataTable
         data={suppliers}
         columns={columns}
-        isLoading={loading}
+        isLoading={isLoading}
         emptyMessage="Nenhum fornecedor cadastrado"
       />
 
       <Modal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={editingId ? "Editar Fornecedor" : "Novo Fornecedor"}
+        title={editingSupplier ? "Editar Fornecedor" : "Novo Fornecedor"}
         maxWidth="520px"
       >
-        {error && (
-          <div
-            style={{
-              padding: "10px 14px",
-              borderRadius: "var(--radius-md)",
-              background: "var(--accent-danger-bg)",
-              color: "var(--accent-danger)",
-              fontSize: "13px",
-              marginBottom: "16px",
-            }}
-          >
-            {error}
-          </div>
-        )}
-        <form
+        <SupplierForm
+          initialData={editingSupplier}
           onSubmit={handleSubmit}
-          style={{ display: "flex", flexDirection: "column", gap: "16px" }}
-        >
-          <div>
-            <label style={labelStyle}>Nome *</label>
-            <input
-              required
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="Nome do fornecedor"
-              style={inputStyle}
-            />
-          </div>
-          <div>
-            <label style={labelStyle}>CNPJ</label>
-            <input
-              value={form.cnpj}
-              onChange={(e) => setForm({ ...form, cnpj: e.target.value })}
-              placeholder="00.000.000/0000-00"
-              style={inputStyle}
-            />
-          </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: "12px",
-            }}
-          >
-            <div>
-              <label style={labelStyle}>E-mail</label>
-              <input
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                placeholder="email@exemplo.com"
-                style={inputStyle}
-              />
-            </div>
-            <div>
-              <label style={labelStyle}>Telefone</label>
-              <input
-                value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                placeholder="(11) 99999-9999"
-                style={inputStyle}
-              />
-            </div>
-          </div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              gap: "10px",
-              marginTop: "4px",
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => setModalOpen(false)}
-              style={{
-                padding: "9px 18px",
-                borderRadius: "var(--radius-md)",
-                border: "1px solid var(--border-color)",
-                background: "transparent",
-                color: "var(--text-secondary)",
-                fontSize: "13px",
-                cursor: "pointer",
-              }}
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              style={{
-                padding: "9px 18px",
-                borderRadius: "var(--radius-md)",
-                border: "none",
-                background:
-                  "linear-gradient(135deg, var(--accent-primary), #a855f7)",
-                color: "white",
-                fontSize: "13px",
-                fontWeight: 600,
-                cursor: saving ? "not-allowed" : "pointer",
-                opacity: saving ? 0.7 : 1,
-              }}
-            >
-              {saving ? "Salvando..." : editingId ? "Salvar" : "Criar"}
-            </button>
-          </div>
-        </form>
+          onCancel={() => setModalOpen(false)}
+          isLoading={isSaving}
+          error={error}
+        />
       </Modal>
 
       <ConfirmModal

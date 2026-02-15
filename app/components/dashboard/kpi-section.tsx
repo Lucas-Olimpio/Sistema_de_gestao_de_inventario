@@ -106,7 +106,7 @@ export default function KPISection({ data }: KPISectionProps) {
                 color: "var(--accent-danger)",
               }}
             >
-              {formatCurrency(data.financials.totalPayable)}
+              {formatCurrency(data.financials?.totalPayable ?? 0)}
             </p>
             <p
               style={{
@@ -115,7 +115,7 @@ export default function KPISection({ data }: KPISectionProps) {
                 marginTop: "4px",
               }}
             >
-              Pago: {formatCurrency(data.financials.totalPaid)}
+              Pago: {formatCurrency(data.financials?.totalPaid ?? 0)}
             </p>
           </div>
           <div style={chartCardStyle} {...cardHover}>
@@ -138,7 +138,7 @@ export default function KPISection({ data }: KPISectionProps) {
                 color: "var(--accent-success)",
               }}
             >
-              {formatCurrency(data.financials.totalReceivable)}
+              {formatCurrency(data.financials?.totalReceivable ?? 0)}
             </p>
             <p
               style={{
@@ -147,7 +147,7 @@ export default function KPISection({ data }: KPISectionProps) {
                 marginTop: "4px",
               }}
             >
-              Recebido: {formatCurrency(data.financials.totalReceived)}
+              Recebido: {formatCurrency(data.financials?.totalReceived ?? 0)}
             </p>
           </div>
           <div style={chartCardStyle} {...cardHover}>
@@ -168,13 +168,13 @@ export default function KPISection({ data }: KPISectionProps) {
                 fontSize: "22px",
                 fontWeight: 700,
                 color:
-                  data.financials.balance >= 0
+                  (data.financials?.balance ?? 0) >= 0
                     ? "var(--accent-success)"
                     : "var(--accent-danger)",
               }}
             >
-              {data.financials.balance >= 0 ? "+" : ""}
-              {formatCurrency(data.financials.balance)}
+              {(data.financials?.balance ?? 0) >= 0 ? "+" : ""}
+              {formatCurrency(data.financials?.balance ?? 0)}
             </p>
             <p
               style={{

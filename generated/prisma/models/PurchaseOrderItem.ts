@@ -28,13 +28,13 @@ export type AggregatePurchaseOrderItem = {
 
 export type PurchaseOrderItemAvgAggregateOutputType = {
   quantity: number | null
-  unitPrice: number | null
+  unitPrice: runtime.Decimal | null
   receivedQty: number | null
 }
 
 export type PurchaseOrderItemSumAggregateOutputType = {
   quantity: number | null
-  unitPrice: number | null
+  unitPrice: runtime.Decimal | null
   receivedQty: number | null
 }
 
@@ -43,7 +43,7 @@ export type PurchaseOrderItemMinAggregateOutputType = {
   purchaseOrderId: string | null
   productId: string | null
   quantity: number | null
-  unitPrice: number | null
+  unitPrice: runtime.Decimal | null
   receivedQty: number | null
 }
 
@@ -52,7 +52,7 @@ export type PurchaseOrderItemMaxAggregateOutputType = {
   purchaseOrderId: string | null
   productId: string | null
   quantity: number | null
-  unitPrice: number | null
+  unitPrice: runtime.Decimal | null
   receivedQty: number | null
 }
 
@@ -198,7 +198,7 @@ export type PurchaseOrderItemGroupByOutputType = {
   purchaseOrderId: string
   productId: string
   quantity: number
-  unitPrice: number
+  unitPrice: runtime.Decimal
   receivedQty: number
   _count: PurchaseOrderItemCountAggregateOutputType | null
   _avg: PurchaseOrderItemAvgAggregateOutputType | null
@@ -230,7 +230,7 @@ export type PurchaseOrderItemWhereInput = {
   purchaseOrderId?: Prisma.StringFilter<"PurchaseOrderItem"> | string
   productId?: Prisma.StringFilter<"PurchaseOrderItem"> | string
   quantity?: Prisma.IntFilter<"PurchaseOrderItem"> | number
-  unitPrice?: Prisma.FloatFilter<"PurchaseOrderItem"> | number
+  unitPrice?: Prisma.DecimalFilter<"PurchaseOrderItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   receivedQty?: Prisma.IntFilter<"PurchaseOrderItem"> | number
   purchaseOrder?: Prisma.XOR<Prisma.PurchaseOrderScalarRelationFilter, Prisma.PurchaseOrderWhereInput>
   product?: Prisma.XOR<Prisma.ProductScalarRelationFilter, Prisma.ProductWhereInput>
@@ -255,7 +255,7 @@ export type PurchaseOrderItemWhereUniqueInput = Prisma.AtLeast<{
   purchaseOrderId?: Prisma.StringFilter<"PurchaseOrderItem"> | string
   productId?: Prisma.StringFilter<"PurchaseOrderItem"> | string
   quantity?: Prisma.IntFilter<"PurchaseOrderItem"> | number
-  unitPrice?: Prisma.FloatFilter<"PurchaseOrderItem"> | number
+  unitPrice?: Prisma.DecimalFilter<"PurchaseOrderItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   receivedQty?: Prisma.IntFilter<"PurchaseOrderItem"> | number
   purchaseOrder?: Prisma.XOR<Prisma.PurchaseOrderScalarRelationFilter, Prisma.PurchaseOrderWhereInput>
   product?: Prisma.XOR<Prisma.ProductScalarRelationFilter, Prisma.ProductWhereInput>
@@ -283,14 +283,14 @@ export type PurchaseOrderItemScalarWhereWithAggregatesInput = {
   purchaseOrderId?: Prisma.StringWithAggregatesFilter<"PurchaseOrderItem"> | string
   productId?: Prisma.StringWithAggregatesFilter<"PurchaseOrderItem"> | string
   quantity?: Prisma.IntWithAggregatesFilter<"PurchaseOrderItem"> | number
-  unitPrice?: Prisma.FloatWithAggregatesFilter<"PurchaseOrderItem"> | number
+  unitPrice?: Prisma.DecimalWithAggregatesFilter<"PurchaseOrderItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   receivedQty?: Prisma.IntWithAggregatesFilter<"PurchaseOrderItem"> | number
 }
 
 export type PurchaseOrderItemCreateInput = {
   id?: string
   quantity: number
-  unitPrice: number
+  unitPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
   receivedQty?: number
   purchaseOrder: Prisma.PurchaseOrderCreateNestedOneWithoutItemsInput
   product: Prisma.ProductCreateNestedOneWithoutPurchaseOrderItemsInput
@@ -301,14 +301,14 @@ export type PurchaseOrderItemUncheckedCreateInput = {
   purchaseOrderId: string
   productId: string
   quantity: number
-  unitPrice: number
+  unitPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
   receivedQty?: number
 }
 
 export type PurchaseOrderItemUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
-  unitPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  unitPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   receivedQty?: Prisma.IntFieldUpdateOperationsInput | number
   purchaseOrder?: Prisma.PurchaseOrderUpdateOneRequiredWithoutItemsNestedInput
   product?: Prisma.ProductUpdateOneRequiredWithoutPurchaseOrderItemsNestedInput
@@ -319,7 +319,7 @@ export type PurchaseOrderItemUncheckedUpdateInput = {
   purchaseOrderId?: Prisma.StringFieldUpdateOperationsInput | string
   productId?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
-  unitPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  unitPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   receivedQty?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
@@ -328,14 +328,14 @@ export type PurchaseOrderItemCreateManyInput = {
   purchaseOrderId: string
   productId: string
   quantity: number
-  unitPrice: number
+  unitPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
   receivedQty?: number
 }
 
 export type PurchaseOrderItemUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
-  unitPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  unitPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   receivedQty?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
@@ -344,7 +344,7 @@ export type PurchaseOrderItemUncheckedUpdateManyInput = {
   purchaseOrderId?: Prisma.StringFieldUpdateOperationsInput | string
   productId?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
-  unitPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  unitPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   receivedQty?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
@@ -484,7 +484,7 @@ export type PurchaseOrderItemUncheckedUpdateManyWithoutPurchaseOrderNestedInput 
 export type PurchaseOrderItemCreateWithoutProductInput = {
   id?: string
   quantity: number
-  unitPrice: number
+  unitPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
   receivedQty?: number
   purchaseOrder: Prisma.PurchaseOrderCreateNestedOneWithoutItemsInput
 }
@@ -493,7 +493,7 @@ export type PurchaseOrderItemUncheckedCreateWithoutProductInput = {
   id?: string
   purchaseOrderId: string
   quantity: number
-  unitPrice: number
+  unitPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
   receivedQty?: number
 }
 
@@ -530,14 +530,14 @@ export type PurchaseOrderItemScalarWhereInput = {
   purchaseOrderId?: Prisma.StringFilter<"PurchaseOrderItem"> | string
   productId?: Prisma.StringFilter<"PurchaseOrderItem"> | string
   quantity?: Prisma.IntFilter<"PurchaseOrderItem"> | number
-  unitPrice?: Prisma.FloatFilter<"PurchaseOrderItem"> | number
+  unitPrice?: Prisma.DecimalFilter<"PurchaseOrderItem"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   receivedQty?: Prisma.IntFilter<"PurchaseOrderItem"> | number
 }
 
 export type PurchaseOrderItemCreateWithoutPurchaseOrderInput = {
   id?: string
   quantity: number
-  unitPrice: number
+  unitPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
   receivedQty?: number
   product: Prisma.ProductCreateNestedOneWithoutPurchaseOrderItemsInput
 }
@@ -546,7 +546,7 @@ export type PurchaseOrderItemUncheckedCreateWithoutPurchaseOrderInput = {
   id?: string
   productId: string
   quantity: number
-  unitPrice: number
+  unitPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
   receivedQty?: number
 }
 
@@ -579,14 +579,14 @@ export type PurchaseOrderItemCreateManyProductInput = {
   id?: string
   purchaseOrderId: string
   quantity: number
-  unitPrice: number
+  unitPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
   receivedQty?: number
 }
 
 export type PurchaseOrderItemUpdateWithoutProductInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
-  unitPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  unitPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   receivedQty?: Prisma.IntFieldUpdateOperationsInput | number
   purchaseOrder?: Prisma.PurchaseOrderUpdateOneRequiredWithoutItemsNestedInput
 }
@@ -595,7 +595,7 @@ export type PurchaseOrderItemUncheckedUpdateWithoutProductInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   purchaseOrderId?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
-  unitPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  unitPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   receivedQty?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
@@ -603,7 +603,7 @@ export type PurchaseOrderItemUncheckedUpdateManyWithoutProductInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   purchaseOrderId?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
-  unitPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  unitPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   receivedQty?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
@@ -611,14 +611,14 @@ export type PurchaseOrderItemCreateManyPurchaseOrderInput = {
   id?: string
   productId: string
   quantity: number
-  unitPrice: number
+  unitPrice: runtime.Decimal | runtime.DecimalJsLike | number | string
   receivedQty?: number
 }
 
 export type PurchaseOrderItemUpdateWithoutPurchaseOrderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
-  unitPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  unitPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   receivedQty?: Prisma.IntFieldUpdateOperationsInput | number
   product?: Prisma.ProductUpdateOneRequiredWithoutPurchaseOrderItemsNestedInput
 }
@@ -627,7 +627,7 @@ export type PurchaseOrderItemUncheckedUpdateWithoutPurchaseOrderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   productId?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
-  unitPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  unitPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   receivedQty?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
@@ -635,7 +635,7 @@ export type PurchaseOrderItemUncheckedUpdateManyWithoutPurchaseOrderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   productId?: Prisma.StringFieldUpdateOperationsInput | string
   quantity?: Prisma.IntFieldUpdateOperationsInput | number
-  unitPrice?: Prisma.FloatFieldUpdateOperationsInput | number
+  unitPrice?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   receivedQty?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
@@ -708,7 +708,7 @@ export type $PurchaseOrderItemPayload<ExtArgs extends runtime.Types.Extensions.I
     purchaseOrderId: string
     productId: string
     quantity: number
-    unitPrice: number
+    unitPrice: runtime.Decimal
     receivedQty: number
   }, ExtArgs["result"]["purchaseOrderItem"]>
   composites: {}
@@ -1139,7 +1139,7 @@ export interface PurchaseOrderItemFieldRefs {
   readonly purchaseOrderId: Prisma.FieldRef<"PurchaseOrderItem", 'String'>
   readonly productId: Prisma.FieldRef<"PurchaseOrderItem", 'String'>
   readonly quantity: Prisma.FieldRef<"PurchaseOrderItem", 'Int'>
-  readonly unitPrice: Prisma.FieldRef<"PurchaseOrderItem", 'Float'>
+  readonly unitPrice: Prisma.FieldRef<"PurchaseOrderItem", 'Decimal'>
   readonly receivedQty: Prisma.FieldRef<"PurchaseOrderItem", 'Int'>
 }
     

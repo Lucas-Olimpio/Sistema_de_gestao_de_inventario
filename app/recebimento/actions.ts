@@ -4,6 +4,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { goodsReceiptSchema } from "@/lib/schemas";
+import { Prisma } from "@prisma/client";
 
 export type State = {
   errors?: {
@@ -55,9 +56,23 @@ export async function createGoodsReceiptAction(
     }
 
     const orderedMap = new Map(po.items.map((item) => [item.productId, item]));
-    const receiptItems: any[] = [];
-    const stockUpdates: any[] = [];
-    let actualTotal = 0;
+
+    type ReceiptItem = {
+      productId: string;
+      receivedQty: number;
+      hasDivergence: boolean;
+    };
+
+    type StockUpdate = {
+      productId: string;
+      receivedQty: number;
+      reason: string;
+    };
+
+    const receiptItems: ReceiptItem[] = [];
+    const stockUpdates: StockUpdate[] = [];
+
+    let runningTotal = new Prisma.Decimal(0);
 
     for (const item of items) {
       const ordered = orderedMap.get(item.productId);
@@ -66,7 +81,11 @@ export async function createGoodsReceiptAction(
         : true;
 
       if (ordered) {
-        actualTotal += item.receivedQty * ordered.unitPrice;
+        // Use Prisma.Decimal methods for precision
+        // ordered.unitPrice is ALREADY a Decimal (from database)
+        // item.receivedQty is a number (int)
+        const lineTotal = ordered.unitPrice.mul(item.receivedQty);
+        runningTotal = runningTotal.add(lineTotal);
       }
 
       receiptItems.push({
@@ -94,22 +113,35 @@ export async function createGoodsReceiptAction(
         },
       });
 
-      // 2. Update PO Status
-      await tx.purchaseOrder.update({
-        where: { id: purchaseOrderId },
-        data: { status: "RECEBIDA" },
-      });
-
-      // 3. Update PO Items receivedQty
+      // 3. Update PO Items receivedQty (Do this before checking status)
       for (const item of items) {
         const poItem = orderedMap.get(item.productId);
         if (poItem) {
           await tx.purchaseOrderItem.update({
             where: { id: poItem.id },
-            data: { receivedQty: item.receivedQty },
+            data: { receivedQty: item.receivedQty }, // receivedQty is Int, safe.
           });
         }
       }
+
+      // Re-fetch PO to check if fully received
+      // We need to fetch items again to see the updated receivedQty in DB?
+      // OR we can just update our local knowledge.
+      // Fetching is safer validation.
+      const updatedPO = await tx.purchaseOrder.findUnique({
+        where: { id: purchaseOrderId },
+        include: { items: true },
+      });
+
+      const isFullyReceived = updatedPO?.items.every(
+        (item) => item.receivedQty >= item.quantity,
+      );
+
+      // 2. Update PO Status
+      await tx.purchaseOrder.update({
+        where: { id: purchaseOrderId },
+        data: { status: isFullyReceived ? "RECEBIDA" : "EM_TRANSITO" },
+      });
 
       // 4. Update Stock & Create Movements
       for (const update of stockUpdates) {
@@ -132,7 +164,7 @@ export async function createGoodsReceiptAction(
       await tx.accountsPayable.create({
         data: {
           purchaseOrderId,
-          amount: actualTotal,
+          amount: runningTotal, // Pass Decimal directly
         },
       });
     });

@@ -27,11 +27,11 @@ export type AggregateSalesOrder = {
 }
 
 export type SalesOrderAvgAggregateOutputType = {
-  totalValue: number | null
+  totalValue: runtime.Decimal | null
 }
 
 export type SalesOrderSumAggregateOutputType = {
-  totalValue: number | null
+  totalValue: runtime.Decimal | null
 }
 
 export type SalesOrderMinAggregateOutputType = {
@@ -39,7 +39,7 @@ export type SalesOrderMinAggregateOutputType = {
   code: string | null
   customerId: string | null
   status: string | null
-  totalValue: number | null
+  totalValue: runtime.Decimal | null
   notes: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -51,7 +51,7 @@ export type SalesOrderMaxAggregateOutputType = {
   code: string | null
   customerId: string | null
   status: string | null
-  totalValue: number | null
+  totalValue: runtime.Decimal | null
   notes: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -208,7 +208,7 @@ export type SalesOrderGroupByOutputType = {
   code: string
   customerId: string
   status: string
-  totalValue: number
+  totalValue: runtime.Decimal
   notes: string | null
   createdAt: Date
   updatedAt: Date
@@ -243,7 +243,7 @@ export type SalesOrderWhereInput = {
   code?: Prisma.StringFilter<"SalesOrder"> | string
   customerId?: Prisma.StringFilter<"SalesOrder"> | string
   status?: Prisma.StringFilter<"SalesOrder"> | string
-  totalValue?: Prisma.FloatFilter<"SalesOrder"> | number
+  totalValue?: Prisma.DecimalFilter<"SalesOrder"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.StringNullableFilter<"SalesOrder"> | string | null
   createdAt?: Prisma.DateTimeFilter<"SalesOrder"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SalesOrder"> | Date | string
@@ -276,7 +276,7 @@ export type SalesOrderWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.SalesOrderWhereInput | Prisma.SalesOrderWhereInput[]
   customerId?: Prisma.StringFilter<"SalesOrder"> | string
   status?: Prisma.StringFilter<"SalesOrder"> | string
-  totalValue?: Prisma.FloatFilter<"SalesOrder"> | number
+  totalValue?: Prisma.DecimalFilter<"SalesOrder"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.StringNullableFilter<"SalesOrder"> | string | null
   createdAt?: Prisma.DateTimeFilter<"SalesOrder"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SalesOrder"> | Date | string
@@ -311,7 +311,7 @@ export type SalesOrderScalarWhereWithAggregatesInput = {
   code?: Prisma.StringWithAggregatesFilter<"SalesOrder"> | string
   customerId?: Prisma.StringWithAggregatesFilter<"SalesOrder"> | string
   status?: Prisma.StringWithAggregatesFilter<"SalesOrder"> | string
-  totalValue?: Prisma.FloatWithAggregatesFilter<"SalesOrder"> | number
+  totalValue?: Prisma.DecimalWithAggregatesFilter<"SalesOrder"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.StringNullableWithAggregatesFilter<"SalesOrder"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"SalesOrder"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"SalesOrder"> | Date | string
@@ -322,7 +322,7 @@ export type SalesOrderCreateInput = {
   id?: string
   code: string
   status?: string
-  totalValue?: number
+  totalValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -337,7 +337,7 @@ export type SalesOrderUncheckedCreateInput = {
   code: string
   customerId: string
   status?: string
-  totalValue?: number
+  totalValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -350,7 +350,7 @@ export type SalesOrderUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -365,7 +365,7 @@ export type SalesOrderUncheckedUpdateInput = {
   code?: Prisma.StringFieldUpdateOperationsInput | string
   customerId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -379,7 +379,7 @@ export type SalesOrderCreateManyInput = {
   code: string
   customerId: string
   status?: string
-  totalValue?: number
+  totalValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -390,7 +390,7 @@ export type SalesOrderUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -402,7 +402,7 @@ export type SalesOrderUncheckedUpdateManyInput = {
   code?: Prisma.StringFieldUpdateOperationsInput | string
   customerId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -542,7 +542,7 @@ export type SalesOrderCreateWithoutCustomerInput = {
   id?: string
   code: string
   status?: string
-  totalValue?: number
+  totalValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -555,7 +555,7 @@ export type SalesOrderUncheckedCreateWithoutCustomerInput = {
   id?: string
   code: string
   status?: string
-  totalValue?: number
+  totalValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -597,7 +597,7 @@ export type SalesOrderScalarWhereInput = {
   code?: Prisma.StringFilter<"SalesOrder"> | string
   customerId?: Prisma.StringFilter<"SalesOrder"> | string
   status?: Prisma.StringFilter<"SalesOrder"> | string
-  totalValue?: Prisma.FloatFilter<"SalesOrder"> | number
+  totalValue?: Prisma.DecimalFilter<"SalesOrder"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.StringNullableFilter<"SalesOrder"> | string | null
   createdAt?: Prisma.DateTimeFilter<"SalesOrder"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"SalesOrder"> | Date | string
@@ -608,7 +608,7 @@ export type SalesOrderCreateWithoutItemsInput = {
   id?: string
   code: string
   status?: string
-  totalValue?: number
+  totalValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -622,7 +622,7 @@ export type SalesOrderUncheckedCreateWithoutItemsInput = {
   code: string
   customerId: string
   status?: string
-  totalValue?: number
+  totalValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -650,7 +650,7 @@ export type SalesOrderUpdateWithoutItemsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -664,7 +664,7 @@ export type SalesOrderUncheckedUpdateWithoutItemsInput = {
   code?: Prisma.StringFieldUpdateOperationsInput | string
   customerId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -676,7 +676,7 @@ export type SalesOrderCreateWithoutReceivableInput = {
   id?: string
   code: string
   status?: string
-  totalValue?: number
+  totalValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -690,7 +690,7 @@ export type SalesOrderUncheckedCreateWithoutReceivableInput = {
   code: string
   customerId: string
   status?: string
-  totalValue?: number
+  totalValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -718,7 +718,7 @@ export type SalesOrderUpdateWithoutReceivableInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -732,7 +732,7 @@ export type SalesOrderUncheckedUpdateWithoutReceivableInput = {
   code?: Prisma.StringFieldUpdateOperationsInput | string
   customerId?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -744,7 +744,7 @@ export type SalesOrderCreateManyCustomerInput = {
   id?: string
   code: string
   status?: string
-  totalValue?: number
+  totalValue?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -755,7 +755,7 @@ export type SalesOrderUpdateWithoutCustomerInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -768,7 +768,7 @@ export type SalesOrderUncheckedUpdateWithoutCustomerInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -781,7 +781,7 @@ export type SalesOrderUncheckedUpdateManyWithoutCustomerInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
-  totalValue?: Prisma.FloatFieldUpdateOperationsInput | number
+  totalValue?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -899,7 +899,7 @@ export type $SalesOrderPayload<ExtArgs extends runtime.Types.Extensions.Internal
     code: string
     customerId: string
     status: string
-    totalValue: number
+    totalValue: runtime.Decimal
     notes: string | null
     createdAt: Date
     updatedAt: Date
@@ -1334,7 +1334,7 @@ export interface SalesOrderFieldRefs {
   readonly code: Prisma.FieldRef<"SalesOrder", 'String'>
   readonly customerId: Prisma.FieldRef<"SalesOrder", 'String'>
   readonly status: Prisma.FieldRef<"SalesOrder", 'String'>
-  readonly totalValue: Prisma.FieldRef<"SalesOrder", 'Float'>
+  readonly totalValue: Prisma.FieldRef<"SalesOrder", 'Decimal'>
   readonly notes: Prisma.FieldRef<"SalesOrder", 'String'>
   readonly createdAt: Prisma.FieldRef<"SalesOrder", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"SalesOrder", 'DateTime'>

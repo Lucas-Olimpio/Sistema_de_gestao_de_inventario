@@ -1,6 +1,7 @@
 # InvenPro — Sistema de Gestão de Inventário
 
 Sistema completo de gestão de inventário com ciclo de compras e vendas, construído com **Next.js 16**, **TypeScript**, **Tailwind CSS v4**, **Prisma 7** e **SQLite**.
+(Obs: O projeto está em desenvolvimento, e algumas funcionalidades podem não estar funcionando corretamente.)
 
 ## O que é
 
@@ -15,6 +16,8 @@ O InvenPro é um sistema ERP simplificado que gerencia o **ciclo completo** de u
 - **Gestão interna**: Controle de estoque, categorias e movimentações
 - **Venda**: Saída de mercadoria e controle de receita
 
+> **Nota**: Este projeto foi configurado para **execução local (Local-First)** utilizando SQLite. Não é necessária a instalação de bancos de dados externos ou configurações complexas de ambiente para rodá-lo.
+
 ---
 
 ## Tecnologias
@@ -28,38 +31,40 @@ O InvenPro é um sistema ERP simplificado que gerencia o **ciclo completo** de u
 | [SQLite](https://www.sqlite.org/)             | via better-sqlite3 | Banco de dados local                      |
 | [Tailwind CSS](https://tailwindcss.com/)      | 4.x                | Framework de CSS utilitário               |
 | [Lucide React](https://lucide.dev/)           | 0.564+             | Biblioteca de ícones                      |
+| [TanStack Query](https://tanstack.com/query)  | 5.x                | Gerenciamento de estado e cache (Client)  |
+| [Zod](https://zod.dev/)                       | 3.x                | Validação de esquemas e tipos             |
 
 ### Como os serviços se conectam
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│  Browser (React Client Components)                  │
-│  ┌──────┐ ┌──────────┐ ┌─────────┐ ┌─────────────┐ │
-│  │ Dash │ │ Produtos │ │ Compras │ │   Vendas    │ │
-│  └──┬───┘ └────┬─────┘ └────┬────┘ └──────┬──────┘ │
-└─────┼──────────┼────────────┼─────────────┼────────┘
-      │ fetch()  │            │             │
-      ▼          ▼            ▼             ▼
+│  Browser                                            │
+│  ┌─────────────────┐  ┌──────────────────────────┐  │
+│  │Server Components│  │  Client Components       │  │
+│  │ (Dashboard)     │  │ (Produtos, Vendas, etc)  │  │
+│  └────────┬────────┘  └──────┬───────────┬───────┘  │
+│           │ Direct DB        │ API       │ Server   │
+│           │ Access           │ Routes    │ Actions  │
+│           │                  ▼           ▼          │
+│           │           ┌────────────┐ ┌────────────┐ │
+│           │           │ React Query│ │ Mutations  │ │
+│           │           └──────┬─────┘ └─────┬──────┘ │
+└───────────┼──────────────────┼─────────────┼────────┘
+            │                  │ fetch()     │ POST
+            ▼                  ▼             ▼
 ┌─────────────────────────────────────────────────────┐
-│  Next.js API Routes (app/api/*)                     │
-│  /dashboard  /products  /suppliers   /customers     │
-│  /movements  /categories /purchase-orders            │
-│  /goods-receipts  /accounts-payable                 │
-│  /sales-orders    /accounts-receivable              │
+│  Backend / Database Layer                           │
+│  (Next.js App Router + Prisma)                      │
 └────────────────────────┬────────────────────────────┘
                          │ Prisma Client
                          ▼
 ┌─────────────────────────────────────────────────────┐
 │  SQLite Database (prisma/dev.db)                    │
-│  12 tabelas: Category, Product, StockMovement,      │
-│  Supplier, PurchaseOrder, PurchaseOrderItem,        │
-│  GoodsReceipt, GoodsReceiptItem, AccountsPayable,  │
-│  Customer, SalesOrder, SalesOrderItem,              │
-│  AccountsReceivable                                 │
+│  Via @prisma/adapter-libsql / better-sqlite3        │
 └─────────────────────────────────────────────────────┘
 ```
 
-**Arquitetura**: Monolito full-stack. O Next.js serve tanto o frontend (React) quanto o backend (API Routes). Todas as páginas são **Client Components** (`"use client"`) que fazem `fetch()` para os endpoints da API. O Prisma ORM conecta ao SQLite via `better-sqlite3` adapter.
+**Arquitetura**: Híbrida. O Dashboard utiliza **Server Components** para acesso direto ao banco (performance). As demais páginas interativas são **Client Components** que utilizam **TanStack Query** para buscar dados via API Routes e **Server Actions** para mutações (criação/edição) com validação Zod. O Prisma conecta ao banco SQLite local.
 
 ---
 
@@ -70,7 +75,7 @@ O InvenPro é um sistema ERP simplificado que gerencia o **ciclo completo** de u
 - KPIs em tempo real: total de produtos, valor do estoque, alertas de estoque baixo
 - **KPIs financeiros**: Compras (custo) vs Vendas (receita) vs Saldo
 - **Filtros por período**: Hoje, 7 dias, 30 dias, 12 meses, Personalizado
-- **4 Gráficos SVG interativos**:
+- **Gráficos interativos**: Desenvolvidos com SVG e CSS puro (sem bibliotecas pesadas de charts).
   - **LineChart** — Movimentações de estoque (entradas vs saídas ao longo do tempo)
   - **BarChart** — Compras vs Vendas (comparativo financeiro)
   - **DonutChart** — Distribuição de produtos por categoria (com popover e legenda interativa)
@@ -163,6 +168,18 @@ npx tsx prisma/seed.ts
 npm run dev
 ```
 
+### Variáveis de Ambiente
+
+Crie um arquivo `.env` na raiz do projeto:
+
+```env
+# Banco de dados local (SQLite)
+TURSO_DATABASE_URL="file:prisma/dev.db"
+
+# (Opcional) Token de autenticação se usar Turso Cloud
+# TURSO_AUTH_TOKEN=""
+```
+
 Acesse em [http://localhost:3000](http://localhost:3000).
 
 Para visualizar o banco de dados:
@@ -178,17 +195,18 @@ npx prisma studio
 ```
 app/
 ├── api/
-│   ├── dashboard/           # KPIs e dados resumidos com filtro de data
 │   ├── products/            # CRUD de produtos
 │   ├── categories/          # CRUD de categorias
 │   ├── movements/           # Movimentações de estoque
 │   ├── suppliers/           # CRUD de fornecedores
-│   ├── purchase-orders/     # Ordens de compra + transições de status
-│   ├── goods-receipts/      # Recebimento com conferência cega
+│   ├── purchase-orders/     # Ordens de compra
 │   ├── accounts-payable/    # Contas a pagar
 │   ├── customers/           # CRUD de clientes
-│   ├── sales-orders/        # Pedidos de venda + faturamento
+│   ├── sales-orders/        # Pedidos de venda
 │   └── accounts-receivable/ # Contas a receber
+├── hooks/
+│   ├── use-purchase-orders.ts # Hook react-query para ordens
+│   └── ...                    # Outros hooks de data fetching
 ├── components/
 │   ├── charts/
 │   │   ├── bar-chart.tsx          # Gráfico de barras com popover interativo
@@ -211,6 +229,8 @@ app/
 ├── fornecedores/            # Página de fornecedores
 ├── compras/                 # Página de ordens de compra
 ├── recebimento/             # Página de recebimento
+│   ├── actions.ts           # Server Actions para processar recebimento
+│   └── page.tsx             # Interface de conferência cega
 ├── contas-a-pagar/          # Página de contas a pagar
 ├── clientes/                # Página de clientes
 ├── pedidos/                 # Página de pedidos de venda

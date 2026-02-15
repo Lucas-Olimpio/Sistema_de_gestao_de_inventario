@@ -1,81 +1,51 @@
+import "dotenv/config";
 import { PrismaClient } from "../generated/prisma/client";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaLibSql } from "@prisma/adapter-libsql";
+import { fakerPT_BR as faker } from "@faker-js/faker";
+import path from "path";
 
-const adapter = new PrismaBetterSqlite3({ url: "file:./prisma/dev.db" });
+const dbPath = path.resolve(process.cwd(), "prisma", "dev.db");
+const normalizedPath = dbPath.replace(/\\/g, "/");
+const finalUrl = `file:///${normalizedPath}`;
+
+const adapter = new PrismaLibSql({ url: finalUrl });
+
 const prisma = new PrismaClient({ adapter });
 
 // ╔══════════════════════════════════════════════════════════════╗
 // ║  CONFIGURAÇÃO: Altere este valor para gerar dados em         ║
 // ║  períodos diferentes. Exemplos:                              ║
+// ║    npx tsx prisma/seed.ts 12                                 ║
 // ║    1  = último mês                                           ║
 // ║    6  = últimos 6 meses                                      ║
 // ║    12 = último ano                                           ║
 // ║    24 = últimos 2 anos                                       ║
 // ╚══════════════════════════════════════════════════════════════╝
-const SEED_MONTHS = 6;
+
+const args = process.argv.slice(2);
+const SEED_MONTHS = args[0] ? parseInt(args[0]) : 6;
 
 // ─── Helpers ────────────────────────────────────────────────────
-function randomDate(from: Date, to: Date): Date {
-  const diff = to.getTime() - from.getTime();
-  return new Date(from.getTime() + Math.random() * diff);
-}
-
-function daysAgo(days: number): Date {
-  const d = new Date();
-  d.setDate(d.getDate() - days);
-  d.setHours(
-    Math.floor(Math.random() * 14) + 7,
-    Math.floor(Math.random() * 60),
-    0,
-    0,
-  );
-  return d;
-}
-
-function monthsAgoRange(): { start: Date; end: Date } {
-  const end = new Date();
-  const start = new Date();
-  start.setMonth(start.getMonth() - SEED_MONTHS);
-  return { start, end };
-}
-
-/** Generate a date at a specific fraction of the timeline (0=start, 1=end) */
-function dateAtFraction(fraction: number): Date {
-  const { start, end } = monthsAgoRange();
-  const diff = end.getTime() - start.getTime();
-  const d = new Date(start.getTime() + diff * fraction);
-  d.setHours(
-    Math.floor(Math.random() * 14) + 7,
-    Math.floor(Math.random() * 60),
-    0,
-    0,
-  );
-  return d;
-}
-
 function randomInt(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+  return faker.number.int({ min, max });
 }
 
-let poCounter = 0;
-function nextPOCode(): string {
-  poCounter++;
-  return `PO-${String(poCounter).padStart(4, "0")}`;
-}
-
-let vdCounter = 0;
-function nextVDCode(): string {
-  vdCounter++;
-  return `VD-${String(vdCounter).padStart(4, "0")}`;
+function randomFloat(min: number, max: number): number {
+  return faker.number.float({ min, max, fractionDigits: 2 });
 }
 
 // ─── Main ───────────────────────────────────────────────────────
 async function main() {
-  console.log(`\n🌱 Gerando seed para os últimos ${SEED_MONTHS} meses...\n`);
+  console.log(
+    `\n🌱 Gerando seed totalmente aleatório para os últimos ${SEED_MONTHS} meses...\n`,
+  );
 
-  const { start: periodStart, end: periodEnd } = monthsAgoRange();
+  const end = new Date();
+  const start = new Date();
+  start.setMonth(start.getMonth() - SEED_MONTHS);
 
   // Limpar dados existentes
+  console.log("🧹 Limpando banco de dados...");
   await prisma.accountsReceivable.deleteMany();
   await prisma.salesOrderItem.deleteMany();
   await prisma.salesOrder.deleteMany();
@@ -91,282 +61,95 @@ async function main() {
   await prisma.category.deleteMany();
 
   // ─── Categorias ────────────────────────────────────────────
-  const categorias = await Promise.all([
-    prisma.category.create({
-      data: {
-        name: "Eletrônicos",
-        description: "Dispositivos eletrônicos e acessórios",
-      },
-    }),
-    prisma.category.create({
-      data: { name: "Móveis", description: "Móveis para escritório e casa" },
-    }),
-    prisma.category.create({
-      data: { name: "Roupas", description: "Vestuário masculino e feminino" },
-    }),
-    prisma.category.create({
-      data: {
-        name: "Alimentos",
-        description: "Produtos alimentícios em geral",
-      },
-    }),
-    prisma.category.create({
-      data: {
-        name: "Ferramentas",
-        description: "Ferramentas manuais e elétricas",
-      },
-    }),
-  ]);
-
-  const [eletronicos, moveis, roupas, alimentos, ferramentas] = categorias;
-
-  // ─── Produtos ─────────────────────────────────────────────
-  const produtosData = [
-    {
-      name: "Notebook Dell Inspiron",
-      description: "Notebook 15.6 polegadas, 16GB RAM, 512GB SSD",
-      sku: "ELET-001",
-      price: 3599.99,
-      quantity: 0,
-      minStock: 5,
-      categoryId: eletronicos.id,
-    },
-    {
-      name: "Mouse Logitech MX Master",
-      description: "Mouse sem fio ergonômico",
-      sku: "ELET-002",
-      price: 449.9,
-      quantity: 0,
-      minStock: 10,
-      categoryId: eletronicos.id,
-    },
-    {
-      name: "Teclado Mecânico Keychron",
-      description: "Teclado mecânico wireless, switches brown",
-      sku: "ELET-003",
-      price: 699.0,
-      quantity: 0,
-      minStock: 8,
-      categoryId: eletronicos.id,
-    },
-    {
-      name: 'Monitor Samsung 27"',
-      description: "Monitor IPS 4K, 60Hz",
-      sku: "ELET-004",
-      price: 2199.0,
-      quantity: 0,
-      minStock: 5,
-      categoryId: eletronicos.id,
-    },
-    {
-      name: "Mesa Escritório L",
-      description: "Mesa em L para escritório, 1.60m x 1.40m",
-      sku: "MOV-001",
-      price: 899.0,
-      quantity: 0,
-      minStock: 3,
-      categoryId: moveis.id,
-    },
-    {
-      name: "Cadeira Ergonômica",
-      description: "Cadeira ergonômica com apoio lombar",
-      sku: "MOV-002",
-      price: 1299.0,
-      quantity: 0,
-      minStock: 5,
-      categoryId: moveis.id,
-    },
-    {
-      name: "Estante Modular",
-      description: "Estante modular de madeira, 5 prateleiras",
-      sku: "MOV-003",
-      price: 459.9,
-      quantity: 0,
-      minStock: 4,
-      categoryId: moveis.id,
-    },
-    {
-      name: "Camiseta Básica Algodão",
-      description: "Camiseta 100% algodão, diversas cores",
-      sku: "ROUP-001",
-      price: 49.9,
-      quantity: 0,
-      minStock: 30,
-      categoryId: roupas.id,
-    },
-    {
-      name: "Calça Jeans Slim",
-      description: "Calça jeans slim fit masculina",
-      sku: "ROUP-002",
-      price: 159.9,
-      quantity: 0,
-      minStock: 15,
-      categoryId: roupas.id,
-    },
-    {
-      name: "Jaqueta Impermeável",
-      description: "Jaqueta corta-vento impermeável",
-      sku: "ROUP-003",
-      price: 289.0,
-      quantity: 0,
-      minStock: 10,
-      categoryId: roupas.id,
-    },
-    {
-      name: "Café Premium 500g",
-      description: "Café torrado e moído, grãos selecionados",
-      sku: "ALIM-001",
-      price: 32.9,
-      quantity: 0,
-      minStock: 20,
-      categoryId: alimentos.id,
-    },
-    {
-      name: "Azeite Extra Virgem 500ml",
-      description: "Azeite de oliva extra virgem importado",
-      sku: "ALIM-002",
-      price: 45.5,
-      quantity: 0,
-      minStock: 15,
-      categoryId: alimentos.id,
-    },
-    {
-      name: "Furadeira de Impacto",
-      description: "Furadeira de impacto 750W com maleta",
-      sku: "FERR-001",
-      price: 349.9,
-      quantity: 0,
-      minStock: 5,
-      categoryId: ferramentas.id,
-    },
-    {
-      name: "Kit Chaves de Fenda",
-      description: "Kit com 12 chaves de fenda e Phillips",
-      sku: "FERR-002",
-      price: 89.9,
-      quantity: 0,
-      minStock: 10,
-      categoryId: ferramentas.id,
-    },
-    {
-      name: "Serra Circular",
-      description: 'Serra circular 7.1/4", 1400W',
-      sku: "FERR-003",
-      price: 599.0,
-      quantity: 0,
-      minStock: 3,
-      categoryId: ferramentas.id,
-    },
-  ];
-
-  const produtos = await Promise.all(
-    produtosData.map((p) => prisma.product.create({ data: p })),
+  console.log("📂 Criando categorias...");
+  const numCategories = 8;
+  const categoriesData = faker.helpers.uniqueArray(
+    () => faker.commerce.department(),
+    numCategories,
   );
 
+  const categories = await Promise.all(
+    categoriesData.map((name) =>
+      prisma.category.create({
+        data: {
+          name,
+          description: faker.lorem.sentence(),
+        },
+      }),
+    ),
+  );
+
+  // ─── Produtos ─────────────────────────────────────────────
+  console.log("📦 Criando produtos...");
+  const numProducts = 60;
+  const products = [];
+
+  for (let i = 0; i < numProducts; i++) {
+    const category = categories[randomInt(0, categories.length - 1)];
+    const product = await prisma.product.create({
+      data: {
+        name: faker.commerce.productName(),
+        description: faker.commerce.productDescription(),
+        sku: faker.string.alphanumeric({ length: 8, casing: "upper" }),
+        price: parseFloat(faker.commerce.price({ min: 10, max: 5000 })),
+        quantity: 0, // Será atualizado por movimentações
+        minStock: randomInt(5, 20),
+        categoryId: category.id,
+      },
+    });
+    products.push(product);
+  }
+
   // ─── Fornecedores ─────────────────────────────────────────
-  const fornecedores = await Promise.all([
-    prisma.supplier.create({
+  console.log("🏭 Criando fornecedores...");
+  const numSuppliers = 12;
+  const suppliers = [];
+
+  for (let i = 0; i < numSuppliers; i++) {
+    const supplier = await prisma.supplier.create({
       data: {
-        name: "TechDistribuidora Ltda",
-        cnpj: "12.345.678/0001-90",
-        email: "vendas@techdistribuidora.com.br",
-        phone: "(11) 3456-7890",
+        name: faker.company.name(),
+        cnpj: faker.string
+          .numeric(14)
+          .replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5"), // Formato CNPJ
+        email: faker.internet.email(),
+        phone: faker.phone.number(),
       },
-    }),
-    prisma.supplier.create({
-      data: {
-        name: "Casa & Conforto SA",
-        cnpj: "23.456.789/0001-01",
-        email: "comercial@casaeconforto.com.br",
-        phone: "(21) 2345-6789",
-      },
-    }),
-    prisma.supplier.create({
-      data: {
-        name: "Moda Express Ltda",
-        cnpj: "34.567.890/0001-12",
-        email: "pedidos@modaexpress.com.br",
-        phone: "(31) 9876-5432",
-      },
-    }),
-    prisma.supplier.create({
-      data: {
-        name: "Ferragens Nacional",
-        cnpj: "45.678.901/0001-23",
-        email: "contato@ferragensnacional.com.br",
-        phone: "(41) 3333-4444",
-      },
-    }),
-    prisma.supplier.create({
-      data: {
-        name: "AgroFoods Distribuidora",
-        cnpj: "56.789.012/0001-34",
-        email: "vendas@agrofoods.com.br",
-        phone: "(51) 4444-5555",
-      },
-    }),
-  ]);
+    });
+    suppliers.push(supplier);
+  }
 
   // ─── Clientes ─────────────────────────────────────────────
-  const clientes = await Promise.all([
-    prisma.customer.create({
-      data: {
-        name: "João Silva",
-        cpfCnpj: "123.456.789-00",
-        email: "joao.silva@email.com",
-        phone: "(11) 98765-4321",
-        address: "Rua das Flores, 123 - São Paulo/SP",
-      },
-    }),
-    prisma.customer.create({
-      data: {
-        name: "Maria Oliveira",
-        cpfCnpj: "987.654.321-00",
-        email: "maria@oliveira.com",
-        phone: "(21) 99876-5432",
-        address: "Av. Brasil, 456 - Rio de Janeiro/RJ",
-      },
-    }),
-    prisma.customer.create({
-      data: {
-        name: "Tech Solutions Ltda",
-        cpfCnpj: "56.789.012/0001-34",
-        email: "compras@techsolutions.com.br",
-        phone: "(31) 3333-2222",
-        address: "Rua da Inovação, 789 - Belo Horizonte/MG",
-      },
-    }),
-    prisma.customer.create({
-      data: {
-        name: "Ana Costa",
-        cpfCnpj: "456.789.012-33",
-        email: "ana.costa@email.com",
-        phone: "(41) 98888-7777",
-      },
-    }),
-    prisma.customer.create({
-      data: {
-        name: "Carlos Mendes",
-        cpfCnpj: "321.654.987-11",
-        email: "carlos.mendes@email.com",
-        phone: "(51) 97777-6666",
-        address: "Rua dos Pinheiros, 321 - Porto Alegre/RS",
-      },
-    }),
-    prisma.customer.create({
-      data: {
-        name: "Escritório Total Ltda",
-        cpfCnpj: "67.890.123/0001-45",
-        email: "compras@escritoriototal.com.br",
-        phone: "(61) 3456-7890",
-        address: "SQN 308 Bloco A - Brasília/DF",
-      },
-    }),
-  ]);
+  console.log("👥 Criando clientes...");
+  const numCustomers = 30;
+  const customers = [];
 
-  // ─── Gerar Ordens de Compra distribuídas no tempo ────────
-  // Dividir o período em fatias para distribuição uniforme
-  const totalPOs = Math.max(8, SEED_MONTHS * 2); // ~2 POs por mês
+  for (let i = 0; i < numCustomers; i++) {
+    const isCompany = faker.datatype.boolean();
+    const customer = await prisma.customer.create({
+      data: {
+        name: isCompany ? faker.company.name() : faker.person.fullName(),
+        cpfCnpj: isCompany
+          ? faker.string
+              .numeric(14)
+              .replace(
+                /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
+                "$1.$2.$3/$4-$5",
+              )
+          : faker.string
+              .numeric(11)
+              .replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4"),
+        email: faker.internet.email(),
+        phone: faker.phone.number(),
+        address: `${faker.location.streetAddress()} - ${faker.location.city()}/${faker.location.state({ abbreviated: true })}`,
+      },
+    });
+    customers.push(customer);
+  }
+
+  // ─── Gerar Ordens de Compra ─────────────────────────────
+  console.log("🛒 Gerando ordens de compra...");
+  const numPOs = Math.max(15, SEED_MONTHS * 4); // ~4 POs/mês
   const poStatuses = [
     "RECEBIDA",
     "RECEBIDA",
@@ -377,25 +160,30 @@ async function main() {
     "CANCELADA",
   ];
 
-  let totalMovements = 0;
-  let totalPayables = 0;
   let totalReceipts = 0;
+  let totalPayables = 0;
+  let totalMovements = 0;
 
-  for (let i = 0; i < totalPOs; i++) {
-    const fraction = i / totalPOs;
-    const poDate = dateAtFraction(fraction);
-    const supplier = fornecedores[i % fornecedores.length];
-    const status = poStatuses[i % poStatuses.length];
+  // Gerar datas aleatórias ordenadas para parecer realista
+  const poDates = Array.from({ length: numPOs })
+    .map(() => faker.date.between({ from: start, to: end }))
+    .sort((a, b) => a.getTime() - b.getTime());
 
-    // Pick 2-3 random products for each PO
-    const numItems = randomInt(2, 3);
-    const shuffled = [...produtos].sort(() => Math.random() - 0.5);
-    const poProducts = shuffled.slice(0, numItems);
+  let poCounter = 0;
+
+  for (let i = 0; i < numPOs; i++) {
+    const poDate = poDates[i];
+    const supplier = suppliers[randomInt(0, suppliers.length - 1)];
+    const status = faker.helpers.arrayElement(poStatuses);
+
+    // 2-5 produtos por PO
+    const numItems = randomInt(2, 5);
+    const poProducts = faker.helpers.arrayElements(products, numItems);
 
     const items = poProducts.map((p) => ({
       productId: p.id,
-      quantity: randomInt(5, 50),
-      unitPrice: p.price * (0.7 + Math.random() * 0.2), // 70-90% of retail
+      quantity: randomInt(10, 100),
+      unitPrice: Number(p.price) * randomFloat(0.6, 0.9), // Custo mais baixo que venda
     }));
 
     const totalValue = items.reduce(
@@ -403,13 +191,16 @@ async function main() {
       0,
     );
 
+    poCounter++;
+    const poCode = `PO-${String(poCounter).padStart(5, "0")}`;
+
     const po = await prisma.purchaseOrder.create({
       data: {
-        code: nextPOCode(),
+        code: poCode,
         supplierId: supplier.id,
         status,
         totalValue,
-        notes: `Pedido de compra gerado automaticamente`,
+        notes: faker.lorem.sentence(),
         createdAt: poDate,
         items: {
           create:
@@ -420,16 +211,16 @@ async function main() {
       },
     });
 
-    // For RECEBIDA: create goods receipt, stock movements, accounts payable
     if (status === "RECEBIDA") {
-      const receiptDate = new Date(
-        poDate.getTime() + randomInt(1, 7) * 86400000,
-      );
+      const receiptDate = faker.date.between({
+        from: poDate,
+        to: new Date(poDate.getTime() + 7 * 24 * 60 * 60 * 1000),
+      });
 
       await prisma.goodsReceipt.create({
         data: {
           purchaseOrderId: po.id,
-          notes: "Recebimento completo",
+          notes: "Recebimento automático",
           createdAt: receiptDate,
           items: {
             create: items.map((it) => ({
@@ -440,11 +231,9 @@ async function main() {
           },
         },
       });
-
       totalReceipts++;
 
       for (const item of items) {
-        // Stock IN movement
         await prisma.stockMovement.create({
           data: {
             productId: item.productId,
@@ -455,37 +244,38 @@ async function main() {
           },
         });
 
-        // Update product stock
         await prisma.product.update({
           where: { id: item.productId },
           data: { quantity: { increment: item.quantity } },
         });
-
         totalMovements++;
       }
 
-      // Accounts payable - some paid, some pending
-      const isPaid = fraction < 0.7; // Older POs are paid
-      const payDate = new Date(
-        receiptDate.getTime() + randomInt(7, 30) * 86400000,
+      const isPaid = faker.datatype.boolean(); // 50% pago
+      const dueDate = new Date(
+        receiptDate.getTime() + 30 * 24 * 60 * 60 * 1000,
       );
+      const paidAt = isPaid
+        ? faker.date.between({ from: receiptDate, to: dueDate })
+        : null;
 
       await prisma.accountsPayable.create({
         data: {
           purchaseOrderId: po.id,
           amount: totalValue,
           status: isPaid ? "PAGO" : "PENDENTE",
-          paidAt: isPaid ? payDate : null,
+          dueDate,
+          paidAt: isPaid ? paidAt : null,
           createdAt: receiptDate,
         },
       });
-
       totalPayables++;
     }
   }
 
-  // ─── Gerar Ordens de Venda distribuídas no tempo ──────────
-  const totalSOs = Math.max(8, SEED_MONTHS * 3); // ~3 SOs por mês
+  // ─── Gerar Ordens de Venda ─────────────────────────────
+  console.log("🛍️  Gerando ordens de venda...");
+  const numSOs = Math.max(30, SEED_MONTHS * 10); // ~10 SOs/mês
   const soStatuses = [
     "FATURADA",
     "FATURADA",
@@ -497,21 +287,25 @@ async function main() {
 
   let totalReceivables = 0;
 
-  for (let i = 0; i < totalSOs; i++) {
-    const fraction = (i + 0.2) / totalSOs; // Offset to not overlap with POs
-    const soDate = dateAtFraction(fraction);
-    const customer = clientes[i % clientes.length];
-    const status = soStatuses[i % soStatuses.length];
+  const soDates = Array.from({ length: numSOs })
+    .map(() => faker.date.between({ from: start, to: end }))
+    .sort((a, b) => a.getTime() - b.getTime());
 
-    // Pick 1-3 random products
-    const numItems = randomInt(1, 3);
-    const shuffled = [...produtos].sort(() => Math.random() - 0.5);
-    const soProducts = shuffled.slice(0, numItems);
+  let soCounter = 0;
+
+  for (let i = 0; i < numSOs; i++) {
+    const soDate = soDates[i];
+    const customer = customers[randomInt(0, customers.length - 1)];
+    const status = faker.helpers.arrayElement(soStatuses);
+
+    // 1-4 produtos por venda
+    const numItems = randomInt(1, 4);
+    const soProducts = faker.helpers.arrayElements(products, numItems);
 
     const items = soProducts.map((p) => ({
       productId: p.id,
-      quantity: randomInt(1, 10),
-      unitPrice: p.price,
+      quantity: randomInt(1, 5),
+      unitPrice: Number(p.price), // Preço cheio
     }));
 
     const totalValue = items.reduce(
@@ -519,23 +313,26 @@ async function main() {
       0,
     );
 
+    soCounter++;
+    const soCode = `VD-${String(soCounter).padStart(5, "0")}`;
+
     const so = await prisma.salesOrder.create({
       data: {
-        code: nextVDCode(),
+        code: soCode,
         customerId: customer.id,
         status,
         totalValue,
-        notes: `Pedido de venda gerado automaticamente`,
+        notes: faker.lorem.sentence(),
         createdAt: soDate,
         items: { create: items },
       },
     });
 
-    // For FATURADA: stock OUT + accounts receivable
     if (status === "FATURADA") {
-      const invoiceDate = new Date(
-        soDate.getTime() + randomInt(0, 3) * 86400000,
-      );
+      const invoiceDate = faker.date.between({
+        from: soDate,
+        to: new Date(soDate.getTime() + 2 * 24 * 60 * 60 * 1000),
+      });
 
       for (const item of items) {
         await prisma.stockMovement.create({
@@ -548,99 +345,82 @@ async function main() {
           },
         });
 
-        // Decrement stock (allow negative for seed data)
         await prisma.product.update({
           where: { id: item.productId },
           data: { quantity: { decrement: item.quantity } },
         });
-
         totalMovements++;
       }
 
-      // Accounts receivable - some received, some pending
-      const isReceived = fraction < 0.6;
-      const receivedDate = new Date(
-        invoiceDate.getTime() + randomInt(7, 30) * 86400000,
+      const isReceived = faker.datatype.boolean();
+      const dueDate = new Date(
+        invoiceDate.getTime() + 30 * 24 * 60 * 60 * 1000,
       );
+      const receivedAt = isReceived
+        ? faker.date.between({ from: invoiceDate, to: dueDate })
+        : null;
 
       await prisma.accountsReceivable.create({
         data: {
           salesOrderId: so.id,
           amount: totalValue,
           status: isReceived ? "RECEBIDO" : "PENDENTE",
-          receivedAt: isReceived ? receivedDate : null,
+          dueDate,
+          receivedAt: isReceived ? receivedAt : null,
           createdAt: invoiceDate,
         },
       });
-
       totalReceivables++;
     }
   }
 
-  // ─── Movimentações extras (avulsas) ───────────────────────
-  // Gerar movimentações avulsas distribuídas para mais volume nos gráficos
-  const extraMovements = Math.max(10, SEED_MONTHS * 4);
+  // ─── Movimentações Extras ─────────────────────────────
+  console.log("📊 Gerando movimentações extras...");
+  const extraMovements = Math.max(20, SEED_MONTHS * 5);
 
   for (let i = 0; i < extraMovements; i++) {
-    const fraction = i / extraMovements;
-    const movDate = dateAtFraction(fraction);
-    const product = produtos[i % produtos.length];
-    const isIn = Math.random() > 0.4; // 60% IN, 40% OUT
-    const qty = randomInt(2, 30);
+    const movDate = faker.date.between({ from: start, to: end });
+    const product = products[randomInt(0, products.length - 1)];
+    const isIn = faker.datatype.boolean(); // 50/50
+    const qty = randomInt(1, 10);
 
-    const inReasons = [
-      "Compra do fornecedor",
-      "Reposição de estoque",
-      "Devolução de cliente",
-      "Transferência entre filiais",
-      "Ajuste de inventário",
-    ];
-    const outReasons = [
-      "Venda online",
-      "Venda loja física",
-      "Venda atacado",
-      "Perda/avaria",
-      "Amostra para cliente",
-    ];
+    // Evitar saldo negativo excessivo se for OUT
+    // Mas para seed, deixaremos passar para ver "casos reais"
+
+    const inReasons = ["Ajuste de Estoque", "Devolução", "Bonificação"];
+    const outReasons = ["Perda", "Avaria", "Uso Interno", "Ajuste de Estoque"];
 
     await prisma.stockMovement.create({
       data: {
         productId: product.id,
         type: isIn ? "IN" : "OUT",
         quantity: qty,
-        reason: isIn
-          ? inReasons[i % inReasons.length]
-          : outReasons[i % outReasons.length],
+        reason: faker.helpers.arrayElement(isIn ? inReasons : outReasons),
         createdAt: movDate,
       },
     });
 
-    // Update stock
     await prisma.product.update({
       where: { id: product.id },
       data: {
         quantity: isIn ? { increment: qty } : { decrement: qty },
       },
     });
-
     totalMovements++;
   }
 
-  // ─── Relatório ────────────────────────────────────────────
-  console.log("✅ Seed concluído com sucesso!");
+  const duration = (new Date().getTime() - new Date().getTime()) / 1000;
+  console.log("\n✅ Seed concluído com sucesso!");
   console.log(
-    `  📅 Período: ${periodStart.toLocaleDateString("pt-BR")} a ${periodEnd.toLocaleDateString("pt-BR")} (${SEED_MONTHS} meses)`,
+    `  📅 Período: ${start.toLocaleDateString()} a ${end.toLocaleDateString()}`,
   );
-  console.log(`  📦 ${categorias.length} categorias criadas`);
-  console.log(`  📋 ${produtos.length} produtos criados`);
-  console.log(`  🏭 ${fornecedores.length} fornecedores criados`);
-  console.log(`  👥 ${clientes.length} clientes criados`);
-  console.log(`  🛒 ${totalPOs} ordens de compra criadas`);
-  console.log(`  📥 ${totalReceipts} recebimentos criados`);
-  console.log(`  💰 ${totalPayables} contas a pagar criadas`);
-  console.log(`  🛍️  ${totalSOs} pedidos de venda criados`);
-  console.log(`  💵 ${totalReceivables} contas a receber criadas`);
-  console.log(`  📊 ${totalMovements} movimentações de estoque criadas`);
+  console.log(`  📦 ${numCategories} categorias`);
+  console.log(`  📋 ${numProducts} produtos base`);
+  console.log(`  🏭 ${numSuppliers} fornecedores`);
+  console.log(`  👥 ${numCustomers} clientes`);
+  console.log(`  🛒 ${numPOs} ordens de compra`);
+  console.log(`  🛍️  ${numSOs} pedidos de venda`);
+  console.log(`  📊 +${totalMovements} movimentações de estoque`);
 }
 
 main()

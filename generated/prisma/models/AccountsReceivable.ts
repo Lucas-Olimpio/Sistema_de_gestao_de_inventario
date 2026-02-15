@@ -27,17 +27,17 @@ export type AggregateAccountsReceivable = {
 }
 
 export type AccountsReceivableAvgAggregateOutputType = {
-  amount: number | null
+  amount: runtime.Decimal | null
 }
 
 export type AccountsReceivableSumAggregateOutputType = {
-  amount: number | null
+  amount: runtime.Decimal | null
 }
 
 export type AccountsReceivableMinAggregateOutputType = {
   id: string | null
   salesOrderId: string | null
-  amount: number | null
+  amount: runtime.Decimal | null
   status: string | null
   dueDate: Date | null
   receivedAt: Date | null
@@ -47,7 +47,7 @@ export type AccountsReceivableMinAggregateOutputType = {
 export type AccountsReceivableMaxAggregateOutputType = {
   id: string | null
   salesOrderId: string | null
-  amount: number | null
+  amount: runtime.Decimal | null
   status: string | null
   dueDate: Date | null
   receivedAt: Date | null
@@ -194,7 +194,7 @@ export type AccountsReceivableGroupByArgs<ExtArgs extends runtime.Types.Extensio
 export type AccountsReceivableGroupByOutputType = {
   id: string
   salesOrderId: string
-  amount: number
+  amount: runtime.Decimal
   status: string
   dueDate: Date | null
   receivedAt: Date | null
@@ -227,7 +227,7 @@ export type AccountsReceivableWhereInput = {
   NOT?: Prisma.AccountsReceivableWhereInput | Prisma.AccountsReceivableWhereInput[]
   id?: Prisma.StringFilter<"AccountsReceivable"> | string
   salesOrderId?: Prisma.StringFilter<"AccountsReceivable"> | string
-  amount?: Prisma.FloatFilter<"AccountsReceivable"> | number
+  amount?: Prisma.DecimalFilter<"AccountsReceivable"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.StringFilter<"AccountsReceivable"> | string
   dueDate?: Prisma.DateTimeNullableFilter<"AccountsReceivable"> | Date | string | null
   receivedAt?: Prisma.DateTimeNullableFilter<"AccountsReceivable"> | Date | string | null
@@ -252,7 +252,7 @@ export type AccountsReceivableWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.AccountsReceivableWhereInput | Prisma.AccountsReceivableWhereInput[]
   OR?: Prisma.AccountsReceivableWhereInput[]
   NOT?: Prisma.AccountsReceivableWhereInput | Prisma.AccountsReceivableWhereInput[]
-  amount?: Prisma.FloatFilter<"AccountsReceivable"> | number
+  amount?: Prisma.DecimalFilter<"AccountsReceivable"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.StringFilter<"AccountsReceivable"> | string
   dueDate?: Prisma.DateTimeNullableFilter<"AccountsReceivable"> | Date | string | null
   receivedAt?: Prisma.DateTimeNullableFilter<"AccountsReceivable"> | Date | string | null
@@ -281,7 +281,7 @@ export type AccountsReceivableScalarWhereWithAggregatesInput = {
   NOT?: Prisma.AccountsReceivableScalarWhereWithAggregatesInput | Prisma.AccountsReceivableScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"AccountsReceivable"> | string
   salesOrderId?: Prisma.StringWithAggregatesFilter<"AccountsReceivable"> | string
-  amount?: Prisma.FloatWithAggregatesFilter<"AccountsReceivable"> | number
+  amount?: Prisma.DecimalWithAggregatesFilter<"AccountsReceivable"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.StringWithAggregatesFilter<"AccountsReceivable"> | string
   dueDate?: Prisma.DateTimeNullableWithAggregatesFilter<"AccountsReceivable"> | Date | string | null
   receivedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"AccountsReceivable"> | Date | string | null
@@ -290,7 +290,7 @@ export type AccountsReceivableScalarWhereWithAggregatesInput = {
 
 export type AccountsReceivableCreateInput = {
   id?: string
-  amount: number
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: string
   dueDate?: Date | string | null
   receivedAt?: Date | string | null
@@ -301,7 +301,7 @@ export type AccountsReceivableCreateInput = {
 export type AccountsReceivableUncheckedCreateInput = {
   id?: string
   salesOrderId: string
-  amount: number
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: string
   dueDate?: Date | string | null
   receivedAt?: Date | string | null
@@ -310,7 +310,7 @@ export type AccountsReceivableUncheckedCreateInput = {
 
 export type AccountsReceivableUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   receivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -321,7 +321,7 @@ export type AccountsReceivableUpdateInput = {
 export type AccountsReceivableUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   salesOrderId?: Prisma.StringFieldUpdateOperationsInput | string
-  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   receivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -331,7 +331,7 @@ export type AccountsReceivableUncheckedUpdateInput = {
 export type AccountsReceivableCreateManyInput = {
   id?: string
   salesOrderId: string
-  amount: number
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: string
   dueDate?: Date | string | null
   receivedAt?: Date | string | null
@@ -340,7 +340,7 @@ export type AccountsReceivableCreateManyInput = {
 
 export type AccountsReceivableUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   receivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -350,7 +350,7 @@ export type AccountsReceivableUpdateManyMutationInput = {
 export type AccountsReceivableUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   salesOrderId?: Prisma.StringFieldUpdateOperationsInput | string
-  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   receivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -434,7 +434,7 @@ export type AccountsReceivableUncheckedUpdateOneWithoutSalesOrderNestedInput = {
 
 export type AccountsReceivableCreateWithoutSalesOrderInput = {
   id?: string
-  amount: number
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: string
   dueDate?: Date | string | null
   receivedAt?: Date | string | null
@@ -443,7 +443,7 @@ export type AccountsReceivableCreateWithoutSalesOrderInput = {
 
 export type AccountsReceivableUncheckedCreateWithoutSalesOrderInput = {
   id?: string
-  amount: number
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: string
   dueDate?: Date | string | null
   receivedAt?: Date | string | null
@@ -468,7 +468,7 @@ export type AccountsReceivableUpdateToOneWithWhereWithoutSalesOrderInput = {
 
 export type AccountsReceivableUpdateWithoutSalesOrderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   receivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -477,7 +477,7 @@ export type AccountsReceivableUpdateWithoutSalesOrderInput = {
 
 export type AccountsReceivableUncheckedUpdateWithoutSalesOrderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   receivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -548,7 +548,7 @@ export type $AccountsReceivablePayload<ExtArgs extends runtime.Types.Extensions.
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     salesOrderId: string
-    amount: number
+    amount: runtime.Decimal
     status: string
     dueDate: Date | null
     receivedAt: Date | null
@@ -979,7 +979,7 @@ export interface Prisma__AccountsReceivableClient<T, Null = never, ExtArgs exten
 export interface AccountsReceivableFieldRefs {
   readonly id: Prisma.FieldRef<"AccountsReceivable", 'String'>
   readonly salesOrderId: Prisma.FieldRef<"AccountsReceivable", 'String'>
-  readonly amount: Prisma.FieldRef<"AccountsReceivable", 'Float'>
+  readonly amount: Prisma.FieldRef<"AccountsReceivable", 'Decimal'>
   readonly status: Prisma.FieldRef<"AccountsReceivable", 'String'>
   readonly dueDate: Prisma.FieldRef<"AccountsReceivable", 'DateTime'>
   readonly receivedAt: Prisma.FieldRef<"AccountsReceivable", 'DateTime'>

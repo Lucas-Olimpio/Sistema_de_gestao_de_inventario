@@ -14,7 +14,11 @@ export async function GET() {
       },
       orderBy: { createdAt: "desc" },
     });
-    return NextResponse.json(receivables);
+    const safeReceivables = receivables.map((r) => ({
+      ...r,
+      amount: Number(r.amount),
+    }));
+    return NextResponse.json(safeReceivables);
   } catch (error) {
     console.error("Error fetching accounts receivable:", error);
     return NextResponse.json(

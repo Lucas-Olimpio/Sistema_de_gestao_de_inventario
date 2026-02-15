@@ -1,6 +1,6 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider        = "prisma-client"
+  output          = "../generated/prisma"
 }
 
 datasource db {
@@ -22,7 +22,7 @@ model Product {
   name               String
   description        String?
   sku                String              @unique
-  price              Float
+  price              Decimal
   quantity           Int                 @default(0)
   minStock           Int                 @default(5)
   categoryId         String
@@ -66,7 +66,7 @@ model PurchaseOrder {
   supplierId    String
   supplier      Supplier            @relation(fields: [supplierId], references: [id])
   status        String              @default("PENDENTE")
-  totalValue    Float               @default(0)
+  totalValue    Decimal             @default(0)
   notes         String?
   items         PurchaseOrderItem[]
   goodsReceipts GoodsReceipt[]
@@ -83,7 +83,7 @@ model PurchaseOrderItem {
   productId       String
   product         Product       @relation(fields: [productId], references: [id])
   quantity        Int
-  unitPrice       Float
+  unitPrice       Decimal
   receivedQty     Int           @default(0)
 }
 
@@ -110,7 +110,7 @@ model AccountsPayable {
   id              String        @id @default(cuid())
   purchaseOrderId String        @unique
   purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
-  amount          Float
+  amount          Decimal
   status          String        @default("PENDENTE")
   dueDate         DateTime?
   paidAt          DateTime?
@@ -138,7 +138,7 @@ model SalesOrder {
   customerId String
   customer   Customer            @relation(fields: [customerId], references: [id])
   status     String              @default("PENDENTE")
-  totalValue Float               @default(0)
+  totalValue Decimal             @default(0)
   notes      String?
   items      SalesOrderItem[]
   receivable AccountsReceivable?
@@ -154,14 +154,14 @@ model SalesOrderItem {
   productId    String
   product      Product    @relation(fields: [productId], references: [id])
   quantity     Int
-  unitPrice    Float
+  unitPrice    Decimal
 }
 
 model AccountsReceivable {
   id           String     @id @default(cuid())
   salesOrderId String     @unique
   salesOrder   SalesOrder @relation(fields: [salesOrderId], references: [id])
-  amount       Float
+  amount       Decimal
   status       String     @default("PENDENTE")
   dueDate      DateTime?
   receivedAt   DateTime?

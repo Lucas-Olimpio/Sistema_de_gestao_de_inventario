@@ -1,8 +1,15 @@
-export function formatCurrency(value: number): string {
+export function formatCurrency(value: number | string | any): string {
+  const numberValue = Number(value);
+  if (isNaN(numberValue))
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(0);
+
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
-  }).format(value);
+  }).format(numberValue);
 }
 
 export function formatDate(date: Date | string): string {
@@ -21,4 +28,13 @@ export function formatDateShort(date: Date | string): string {
     month: "2-digit",
     year: "numeric",
   }).format(new Date(date));
+}
+
+export function formatDayMonth(dateStr: string): string {
+  const parts = dateStr.split("-");
+  if (parts.length === 3) {
+    const [, m, d] = parts;
+    return `${d}/${m}`;
+  }
+  return dateStr;
 }

@@ -10,10 +10,10 @@ export async function GET(request: Request) {
     const limit = parseInt(searchParams.get("limit") || "10");
     const skip = (page - 1) * limit;
 
-    const where: Record<string, unknown> = {};
-
-    // Soft delete filter
-    where.deletedAt = null;
+    // Generic where clause with correct type for OR
+    const where: any = {
+      deletedAt: null,
+    };
 
     if (search) {
       where.OR = [
@@ -38,8 +38,13 @@ export async function GET(request: Request) {
       }),
     ]);
 
+    const safeProducts = products.map((p) => ({
+      ...p,
+      price: Number(p.price),
+    }));
+
     return NextResponse.json({
-      data: products,
+      data: safeProducts,
       meta: {
         total,
         page,

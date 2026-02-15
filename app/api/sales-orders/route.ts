@@ -23,7 +23,16 @@ export async function GET(request: Request) {
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json(orders);
+    const safeOrders = orders.map((order) => ({
+      ...order,
+      totalValue: Number(order.totalValue),
+      items: order.items.map((item) => ({
+        ...item,
+        unitPrice: Number(item.unitPrice),
+      })),
+    }));
+
+    return NextResponse.json(safeOrders);
   } catch (error) {
     console.error("Error fetching sales orders:", error);
     return NextResponse.json(
@@ -59,11 +68,10 @@ export async function POST(request: Request) {
     const code = `VD-${String(nextNumber).padStart(4, "0")}`;
 
     // Calculate total
-    const totalValue = (
-      items as Array<{ quantity: number; unitPrice: number }>
-    ).reduce(
+    // Calculate total
+    const totalValue = items.reduce(
       (sum: number, item: { quantity: number; unitPrice: number }) =>
-        sum + item.quantity * item.unitPrice,
+        sum + item.quantity * Number(item.unitPrice),
       0,
     );
 
@@ -74,17 +82,17 @@ export async function POST(request: Request) {
         notes: notes || null,
         totalValue,
         items: {
-          create: (
-            items as Array<{
+          create: items.map(
+            (item: {
               productId: string;
               quantity: number;
               unitPrice: number;
-            }>
-          ).map((item) => ({
-            productId: item.productId,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-          })),
+            }) => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+            }),
+          ),
         },
       },
       include: {

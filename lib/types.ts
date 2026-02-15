@@ -27,6 +27,7 @@ export interface Supplier {
   cnpj?: string | null;
   email?: string | null;
   phone?: string | null;
+  _count?: { purchaseOrders: number };
 }
 
 export interface Customer {
@@ -36,6 +37,7 @@ export interface Customer {
   email?: string | null;
   phone?: string | null;
   address?: string | null;
+  _count?: { salesOrders: number };
 }
 
 export interface OrderItem {

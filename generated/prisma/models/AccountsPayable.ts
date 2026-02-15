@@ -27,17 +27,17 @@ export type AggregateAccountsPayable = {
 }
 
 export type AccountsPayableAvgAggregateOutputType = {
-  amount: number | null
+  amount: runtime.Decimal | null
 }
 
 export type AccountsPayableSumAggregateOutputType = {
-  amount: number | null
+  amount: runtime.Decimal | null
 }
 
 export type AccountsPayableMinAggregateOutputType = {
   id: string | null
   purchaseOrderId: string | null
-  amount: number | null
+  amount: runtime.Decimal | null
   status: string | null
   dueDate: Date | null
   paidAt: Date | null
@@ -47,7 +47,7 @@ export type AccountsPayableMinAggregateOutputType = {
 export type AccountsPayableMaxAggregateOutputType = {
   id: string | null
   purchaseOrderId: string | null
-  amount: number | null
+  amount: runtime.Decimal | null
   status: string | null
   dueDate: Date | null
   paidAt: Date | null
@@ -194,7 +194,7 @@ export type AccountsPayableGroupByArgs<ExtArgs extends runtime.Types.Extensions.
 export type AccountsPayableGroupByOutputType = {
   id: string
   purchaseOrderId: string
-  amount: number
+  amount: runtime.Decimal
   status: string
   dueDate: Date | null
   paidAt: Date | null
@@ -227,7 +227,7 @@ export type AccountsPayableWhereInput = {
   NOT?: Prisma.AccountsPayableWhereInput | Prisma.AccountsPayableWhereInput[]
   id?: Prisma.StringFilter<"AccountsPayable"> | string
   purchaseOrderId?: Prisma.StringFilter<"AccountsPayable"> | string
-  amount?: Prisma.FloatFilter<"AccountsPayable"> | number
+  amount?: Prisma.DecimalFilter<"AccountsPayable"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.StringFilter<"AccountsPayable"> | string
   dueDate?: Prisma.DateTimeNullableFilter<"AccountsPayable"> | Date | string | null
   paidAt?: Prisma.DateTimeNullableFilter<"AccountsPayable"> | Date | string | null
@@ -252,7 +252,7 @@ export type AccountsPayableWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.AccountsPayableWhereInput | Prisma.AccountsPayableWhereInput[]
   OR?: Prisma.AccountsPayableWhereInput[]
   NOT?: Prisma.AccountsPayableWhereInput | Prisma.AccountsPayableWhereInput[]
-  amount?: Prisma.FloatFilter<"AccountsPayable"> | number
+  amount?: Prisma.DecimalFilter<"AccountsPayable"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.StringFilter<"AccountsPayable"> | string
   dueDate?: Prisma.DateTimeNullableFilter<"AccountsPayable"> | Date | string | null
   paidAt?: Prisma.DateTimeNullableFilter<"AccountsPayable"> | Date | string | null
@@ -281,7 +281,7 @@ export type AccountsPayableScalarWhereWithAggregatesInput = {
   NOT?: Prisma.AccountsPayableScalarWhereWithAggregatesInput | Prisma.AccountsPayableScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"AccountsPayable"> | string
   purchaseOrderId?: Prisma.StringWithAggregatesFilter<"AccountsPayable"> | string
-  amount?: Prisma.FloatWithAggregatesFilter<"AccountsPayable"> | number
+  amount?: Prisma.DecimalWithAggregatesFilter<"AccountsPayable"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.StringWithAggregatesFilter<"AccountsPayable"> | string
   dueDate?: Prisma.DateTimeNullableWithAggregatesFilter<"AccountsPayable"> | Date | string | null
   paidAt?: Prisma.DateTimeNullableWithAggregatesFilter<"AccountsPayable"> | Date | string | null
@@ -290,7 +290,7 @@ export type AccountsPayableScalarWhereWithAggregatesInput = {
 
 export type AccountsPayableCreateInput = {
   id?: string
-  amount: number
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: string
   dueDate?: Date | string | null
   paidAt?: Date | string | null
@@ -301,7 +301,7 @@ export type AccountsPayableCreateInput = {
 export type AccountsPayableUncheckedCreateInput = {
   id?: string
   purchaseOrderId: string
-  amount: number
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: string
   dueDate?: Date | string | null
   paidAt?: Date | string | null
@@ -310,7 +310,7 @@ export type AccountsPayableUncheckedCreateInput = {
 
 export type AccountsPayableUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -321,7 +321,7 @@ export type AccountsPayableUpdateInput = {
 export type AccountsPayableUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   purchaseOrderId?: Prisma.StringFieldUpdateOperationsInput | string
-  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -331,7 +331,7 @@ export type AccountsPayableUncheckedUpdateInput = {
 export type AccountsPayableCreateManyInput = {
   id?: string
   purchaseOrderId: string
-  amount: number
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: string
   dueDate?: Date | string | null
   paidAt?: Date | string | null
@@ -340,7 +340,7 @@ export type AccountsPayableCreateManyInput = {
 
 export type AccountsPayableUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -350,7 +350,7 @@ export type AccountsPayableUpdateManyMutationInput = {
 export type AccountsPayableUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   purchaseOrderId?: Prisma.StringFieldUpdateOperationsInput | string
-  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -434,7 +434,7 @@ export type AccountsPayableUncheckedUpdateOneWithoutPurchaseOrderNestedInput = {
 
 export type AccountsPayableCreateWithoutPurchaseOrderInput = {
   id?: string
-  amount: number
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: string
   dueDate?: Date | string | null
   paidAt?: Date | string | null
@@ -443,7 +443,7 @@ export type AccountsPayableCreateWithoutPurchaseOrderInput = {
 
 export type AccountsPayableUncheckedCreateWithoutPurchaseOrderInput = {
   id?: string
-  amount: number
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: string
   dueDate?: Date | string | null
   paidAt?: Date | string | null
@@ -468,7 +468,7 @@ export type AccountsPayableUpdateToOneWithWhereWithoutPurchaseOrderInput = {
 
 export type AccountsPayableUpdateWithoutPurchaseOrderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -477,7 +477,7 @@ export type AccountsPayableUpdateWithoutPurchaseOrderInput = {
 
 export type AccountsPayableUncheckedUpdateWithoutPurchaseOrderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  amount?: Prisma.FloatFieldUpdateOperationsInput | number
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   dueDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -548,7 +548,7 @@ export type $AccountsPayablePayload<ExtArgs extends runtime.Types.Extensions.Int
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     purchaseOrderId: string
-    amount: number
+    amount: runtime.Decimal
     status: string
     dueDate: Date | null
     paidAt: Date | null
@@ -979,7 +979,7 @@ export interface Prisma__AccountsPayableClient<T, Null = never, ExtArgs extends 
 export interface AccountsPayableFieldRefs {
   readonly id: Prisma.FieldRef<"AccountsPayable", 'String'>
   readonly purchaseOrderId: Prisma.FieldRef<"AccountsPayable", 'String'>
-  readonly amount: Prisma.FieldRef<"AccountsPayable", 'Float'>
+  readonly amount: Prisma.FieldRef<"AccountsPayable", 'Decimal'>
   readonly status: Prisma.FieldRef<"AccountsPayable", 'String'>
   readonly dueDate: Prisma.FieldRef<"AccountsPayable", 'DateTime'>
   readonly paidAt: Prisma.FieldRef<"AccountsPayable", 'DateTime'>
