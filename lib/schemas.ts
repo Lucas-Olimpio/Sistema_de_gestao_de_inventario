@@ -7,7 +7,7 @@ export const productSchema = z.object({
   price: z.coerce
     .number()
     .min(0.01, "O preço deve ser maior que 0")
-    .transform((val) => Math.round(val * 100)),
+    .min(0.01, "O preço deve ser maior que 0"),
   quantity: z.coerce
     .number()
     .int()
@@ -36,7 +36,7 @@ export const orderItemSchema = z.object({
   unitPrice: z.coerce
     .number()
     .min(0.01, "Preço unitário inválido")
-    .transform((val) => Math.round(val * 100)),
+    .min(0.01, "Preço unitário inválido"),
 });
 
 export const salesOrderSchema = z.object({

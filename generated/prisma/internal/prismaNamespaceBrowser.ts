@@ -63,7 +63,11 @@ export const ModelName = {
   Customer: 'Customer',
   SalesOrder: 'SalesOrder',
   SalesOrderItem: 'SalesOrderItem',
-  AccountsReceivable: 'AccountsReceivable'
+  AccountsReceivable: 'AccountsReceivable',
+  Installment: 'Installment',
+  OrderStatusHistory: 'OrderStatusHistory',
+  BankAccount: 'BankAccount',
+  Transaction: 'Transaction'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -97,6 +101,7 @@ export const ProductScalarFieldEnum = {
   description: 'description',
   sku: 'sku',
   price: 'price',
+  costPrice: 'costPrice',
   quantity: 'quantity',
   minStock: 'minStock',
   categoryId: 'categoryId',
@@ -247,6 +252,57 @@ export const AccountsReceivableScalarFieldEnum = {
 } as const
 
 export type AccountsReceivableScalarFieldEnum = (typeof AccountsReceivableScalarFieldEnum)[keyof typeof AccountsReceivableScalarFieldEnum]
+
+
+export const InstallmentScalarFieldEnum = {
+  id: 'id',
+  salesOrderId: 'salesOrderId',
+  number: 'number',
+  amount: 'amount',
+  dueDate: 'dueDate',
+  status: 'status',
+  paidAt: 'paidAt',
+  createdAt: 'createdAt'
+} as const
+
+export type InstallmentScalarFieldEnum = (typeof InstallmentScalarFieldEnum)[keyof typeof InstallmentScalarFieldEnum]
+
+
+export const OrderStatusHistoryScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  orderType: 'orderType',
+  oldStatus: 'oldStatus',
+  newStatus: 'newStatus',
+  changedBy: 'changedBy',
+  changedAt: 'changedAt'
+} as const
+
+export type OrderStatusHistoryScalarFieldEnum = (typeof OrderStatusHistoryScalarFieldEnum)[keyof typeof OrderStatusHistoryScalarFieldEnum]
+
+
+export const BankAccountScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  bankName: 'bankName',
+  accountNumber: 'accountNumber',
+  currentBalance: 'currentBalance'
+} as const
+
+export type BankAccountScalarFieldEnum = (typeof BankAccountScalarFieldEnum)[keyof typeof BankAccountScalarFieldEnum]
+
+
+export const TransactionScalarFieldEnum = {
+  id: 'id',
+  bankAccountId: 'bankAccountId',
+  amount: 'amount',
+  type: 'type',
+  description: 'description',
+  referenceId: 'referenceId',
+  createdAt: 'createdAt'
+} as const
+
+export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
 
 
 export const SortOrder = {

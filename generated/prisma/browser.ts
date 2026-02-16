@@ -82,3 +82,23 @@ export type SalesOrderItem = Prisma.SalesOrderItemModel
  * 
  */
 export type AccountsReceivable = Prisma.AccountsReceivableModel
+/**
+ * Model Installment
+ * 
+ */
+export type Installment = Prisma.InstallmentModel
+/**
+ * Model OrderStatusHistory
+ * 
+ */
+export type OrderStatusHistory = Prisma.OrderStatusHistoryModel
+/**
+ * Model BankAccount
+ * 
+ */
+export type BankAccount = Prisma.BankAccountModel
+/**
+ * Model Transaction
+ * 
+ */
+export type Transaction = Prisma.TransactionModel

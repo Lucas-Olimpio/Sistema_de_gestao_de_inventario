@@ -67,6 +67,7 @@ export async function createGoodsReceiptAction(
       productId: string;
       receivedQty: number;
       reason: string;
+      unitPrice: Prisma.Decimal;
     };
 
     const receiptItems: ReceiptItem[] = [];
@@ -99,6 +100,7 @@ export async function createGoodsReceiptAction(
           productId: item.productId,
           receivedQty: item.receivedQty,
           reason: `Recebimento PO ${po.code}`,
+          unitPrice: ordered ? ordered.unitPrice : new Prisma.Decimal(0),
         });
       }
     }
@@ -147,7 +149,11 @@ export async function createGoodsReceiptAction(
       for (const update of stockUpdates) {
         await tx.product.update({
           where: { id: update.productId },
-          data: { quantity: { increment: update.receivedQty } },
+          data: {
+            quantity: { increment: update.receivedQty },
+            // @ts-ignore: costPrice is a new field
+            costPrice: update.unitPrice,
+          },
         });
 
         await tx.stockMovement.create({
