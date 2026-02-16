@@ -147,14 +147,29 @@ export async function createGoodsReceiptAction(
 
       // 4. Update Stock & Create Movements
       for (const update of stockUpdates) {
-        await tx.product.update({
+        const product = await tx.product.findUnique({
           where: { id: update.productId },
-          data: {
-            quantity: { increment: update.receivedQty },
-            // @ts-ignore: costPrice is a new field
-            costPrice: update.unitPrice,
-          },
         });
+
+        if (product) {
+          const currentTotalValue =
+            Number(product.quantity) * Number(product.costPrice);
+          const newItemsValue = update.receivedQty * Number(update.unitPrice);
+          const newTotalQty = Number(product.quantity) + update.receivedQty;
+
+          const averageCost =
+            newTotalQty > 0
+              ? (currentTotalValue + newItemsValue) / newTotalQty
+              : Number(update.unitPrice);
+
+          await tx.product.update({
+            where: { id: update.productId },
+            data: {
+              quantity: { increment: update.receivedQty },
+              costPrice: new Prisma.Decimal(averageCost),
+            },
+          });
+        }
 
         await tx.stockMovement.create({
           data: {

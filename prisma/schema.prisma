@@ -144,7 +144,7 @@ model SalesOrder {
   notes        String?
   items        SalesOrderItem[]
   installments Installment[]
-  receivable   AccountsReceivable? 
+  receivables  AccountsReceivable[] 
   createdAt    DateTime            @default(now())
   updatedAt    DateTime            @updatedAt
   deletedAt    DateTime?
@@ -162,7 +162,7 @@ model SalesOrderItem {
 
 model AccountsReceivable {
   id           String     @id @default(cuid())
-  salesOrderId String     @unique
+  salesOrderId String
   salesOrder   SalesOrder @relation(fields: [salesOrderId], references: [id])
   amount       Decimal
   status       String     @default("PENDENTE")

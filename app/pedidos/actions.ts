@@ -174,16 +174,35 @@ export async function updateSalesOrderStatusAction(id: string, status: string) {
           });
         }
 
-        // Create Receivable
-        await tx.accountsReceivable.create({
-          data: {
-            salesOrderId: id,
-            amount: order.totalValue,
-          },
+        // Check for installments
+        const installments = await tx.installment.findMany({
+          where: { salesOrderId: id },
         });
+
+        if (installments.length > 0) {
+          // Create a receivable for each installment
+          for (const installment of installments) {
+            await tx.accountsReceivable.create({
+              data: {
+                salesOrderId: id,
+                amount: installment.amount,
+                dueDate: installment.dueDate,
+                status: "PENDENTE",
+              },
+            });
+          }
+        } else {
+          // Create single Receivable for total value (fallback)
+          await tx.accountsReceivable.create({
+            data: {
+              salesOrderId: id,
+              amount: order.totalValue,
+              dueDate: new Date(), // Immediate due date for single payment
+            },
+          });
+        }
       });
     } else {
-      // Simple update
       // Simple update with Audit Log
       await prisma.$transaction(async (tx) => {
         await tx.salesOrder.update({
