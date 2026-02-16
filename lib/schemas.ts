@@ -39,10 +39,17 @@ export const orderItemSchema = z.object({
     .min(0.01, "Preço unitário inválido"),
 });
 
+export const installmentSchema = z.object({
+  number: z.number().int(),
+  amount: z.number(),
+  dueDate: z.coerce.date(),
+});
+
 export const salesOrderSchema = z.object({
   customerId: z.string().uuid("Selecione um cliente"),
   items: z.array(orderItemSchema).min(1, "Adicione pelo menos um item"),
   notes: z.string().optional(),
+  installments: z.array(installmentSchema).optional(),
 });
 
 export type ProductSchema = z.infer<typeof productSchema>;

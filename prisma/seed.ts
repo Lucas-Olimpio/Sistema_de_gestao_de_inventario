@@ -316,6 +316,26 @@ async function main() {
     soCounter++;
     const soCode = `VD-${String(soCounter).padStart(5, "0")}`;
 
+    const hasInstallments = faker.datatype.boolean(); // 50% chance of installments
+    const installmentsData: any[] = [];
+
+    if (hasInstallments) {
+      const numInstallments = randomInt(2, 6);
+      const installmentAmount = Number(totalValue) / numInstallments;
+
+      for (let k = 1; k <= numInstallments; k++) {
+        const dueDate = new Date(soDate);
+        dueDate.setMonth(dueDate.getMonth() + k);
+
+        installmentsData.push({
+          number: k,
+          amount: installmentAmount,
+          dueDate: dueDate,
+          status: "PENDENTE",
+        });
+      }
+    }
+
     const so = await prisma.salesOrder.create({
       data: {
         code: soCode,
@@ -325,6 +345,10 @@ async function main() {
         notes: faker.lorem.sentence(),
         createdAt: soDate,
         items: { create: items },
+        installments:
+          installmentsData.length > 0
+            ? { create: installmentsData }
+            : undefined,
       },
     });
 
@@ -352,25 +376,48 @@ async function main() {
         totalMovements++;
       }
 
-      const isReceived = faker.datatype.boolean();
-      const dueDate = new Date(
-        invoiceDate.getTime() + 30 * 24 * 60 * 60 * 1000,
-      );
-      const receivedAt = isReceived
-        ? faker.date.between({ from: invoiceDate, to: dueDate })
-        : null;
+      if (installmentsData.length > 0) {
+        // Create Receivables from Installments
+        for (const inst of installmentsData) {
+          const isReceived = faker.datatype.boolean();
+          const receivedAt = isReceived
+            ? faker.date.between({ from: invoiceDate, to: inst.dueDate })
+            : null;
 
-      await prisma.accountsReceivable.create({
-        data: {
-          salesOrderId: so.id,
-          amount: totalValue,
-          status: isReceived ? "RECEBIDO" : "PENDENTE",
-          dueDate,
-          receivedAt: isReceived ? receivedAt : null,
-          createdAt: invoiceDate,
-        },
-      });
-      totalReceivables++;
+          await prisma.accountsReceivable.create({
+            data: {
+              salesOrderId: so.id,
+              amount: inst.amount,
+              status: isReceived ? "RECEBIDO" : "PENDENTE",
+              dueDate: inst.dueDate,
+              receivedAt: isReceived ? receivedAt : null,
+              createdAt: invoiceDate,
+            },
+          });
+          totalReceivables++;
+        }
+      } else {
+        // Single Receivable
+        const isReceived = faker.datatype.boolean();
+        const dueDate = new Date(
+          invoiceDate.getTime() + 30 * 24 * 60 * 60 * 1000,
+        );
+        const receivedAt = isReceived
+          ? faker.date.between({ from: invoiceDate, to: dueDate })
+          : null;
+
+        await prisma.accountsReceivable.create({
+          data: {
+            salesOrderId: so.id,
+            amount: totalValue,
+            status: isReceived ? "RECEBIDO" : "PENDENTE",
+            dueDate,
+            receivedAt: isReceived ? receivedAt : null,
+            createdAt: invoiceDate,
+          },
+        });
+        totalReceivables++;
+      }
     }
   }
 

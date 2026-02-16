@@ -20,7 +20,7 @@ export async function createSalesOrderAction(
     };
   }
 
-  const { customerId, items, notes } = validatedFields.data;
+  const { customerId, items, notes, installments } = validatedFields.data;
 
   try {
     // Generate Code
@@ -69,6 +69,17 @@ export async function createSalesOrderAction(
                 unitPrice: item.unitPrice,
               })),
             },
+            installments:
+              installments && installments.length > 0
+                ? {
+                    create: installments.map((inst) => ({
+                      number: inst.number,
+                      amount: inst.amount,
+                      dueDate: inst.dueDate,
+                      status: "PENDENTE",
+                    })),
+                  }
+                : undefined,
           },
         });
         created = true;
