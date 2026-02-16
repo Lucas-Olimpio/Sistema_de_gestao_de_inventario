@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { Product, Supplier } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface OrderFormProps {
   suppliers: Supplier[];
@@ -42,7 +43,7 @@ export default function OrderForm({
     if (field === "productId" && value) {
       const product = products.find((p) => p.id === value);
       if (product) {
-        updated[index].unitPrice = product.price.toString();
+        updated[index].unitPrice = (Number(product.price) / 100).toFixed(2);
       }
     }
     setItems(updated);
@@ -57,8 +58,19 @@ export default function OrderForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    await onSubmit({ ...form, items });
-    setSaving(false);
+
+    // Using toast.promise for better UX
+    toast.promise(onSubmit({ ...form, items }), {
+      loading: "Criando ordem de compra...",
+      success: () => {
+        setSaving(false);
+        return "Ordem de compra criada com sucesso!";
+      },
+      error: (err) => {
+        setSaving(false);
+        return "Erro ao criar ordem. Verifique os dados.";
+      },
+    });
   };
 
   const inputStyle: React.CSSProperties = {

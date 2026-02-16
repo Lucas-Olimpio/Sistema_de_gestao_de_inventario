@@ -42,7 +42,7 @@ export default function OrderForm({
     if (field === "productId" && value) {
       const product = products.find((p) => p.id === value);
       if (product) {
-        updated[index].unitPrice = product.price.toString();
+        updated[index].unitPrice = (Number(product.price) / 100).toFixed(2);
       }
     }
     setItems(updated);

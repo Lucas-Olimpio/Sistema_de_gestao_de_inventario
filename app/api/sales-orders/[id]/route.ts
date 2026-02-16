@@ -104,7 +104,10 @@ export async function PUT(
       for (const item of order.items) {
         operations.push(
           prisma.product.update({
-            where: { id: item.productId },
+            where: {
+              id: item.productId,
+              quantity: { gte: item.quantity },
+            },
             data: { quantity: { decrement: item.quantity } },
           }),
         );

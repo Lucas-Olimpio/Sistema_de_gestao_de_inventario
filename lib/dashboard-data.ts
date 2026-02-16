@@ -19,15 +19,16 @@ export async function getDashboardData(
   // Total products (snapshot - not filtered by date)
   const totalProducts = await prisma.product.count();
 
-  // Total stock value (snapshot)
-  const products = await prisma.product.findMany({
-    select: { price: true, quantity: true },
-  });
-  const totalValue = products.reduce(
-    (sum, p) => sum + Number(p.price) * p.quantity,
-    0,
-  );
-  const totalQuantity = products.reduce((sum, p) => sum + p.quantity, 0);
+  // Total stock value & quantity (snapshot) - Optimized with raw query
+  // We use queryRaw because Prisma aggregate doesn't support multiplication (price * quantity)
+  const result = await prisma.$queryRaw<
+    Array<{ totalVal: unknown; totalQty: unknown }>
+  >`
+    SELECT SUM(price * quantity) as totalVal, SUM(quantity) as totalQty FROM Product
+  `;
+
+  const totalValue = Number(result[0]?.totalVal || 0);
+  const totalQuantity = Number(result[0]?.totalQty || 0);
 
   // Low stock items (snapshot)
   const allProducts = await prisma.product.findMany({
@@ -64,18 +65,24 @@ export async function getDashboardData(
   }));
 
   // Movement stats (filtered by period)
+  const movementsInData = await prisma.stockMovement.aggregate({
+    where: { ...dateFilter, type: "IN" },
+    _sum: { quantity: true },
+  });
+  const totalIn = movementsInData._sum.quantity || 0;
+
+  const movementsOutData = await prisma.stockMovement.aggregate({
+    where: { ...dateFilter, type: "OUT" },
+    _sum: { quantity: true },
+  });
+  const totalOut = movementsOutData._sum.quantity || 0;
+
+  // Movements for chart (still need to fetch to group by day in JS)
   const periodMovements = await prisma.stockMovement.findMany({
     where: dateFilter,
     select: { type: true, quantity: true, createdAt: true },
+    orderBy: { createdAt: "asc" },
   });
-
-  const totalIn = periodMovements
-    .filter((m) => m.type === "IN")
-    .reduce((sum, m) => sum + m.quantity, 0);
-
-  const totalOut = periodMovements
-    .filter((m) => m.type === "OUT")
-    .reduce((sum, m) => sum + m.quantity, 0);
 
   // Movements grouped by day (for bar chart)
   const movementsByDay: Record<
@@ -115,48 +122,56 @@ export async function getDashboardData(
   }));
 
   // Financial KPIs (filtered by period)
-  const payables = await prisma.accountsPayable.findMany({
+  const payablesGrouped = await prisma.accountsPayable.groupBy({
+    by: ["status"],
     where: dateFilter,
-    select: { amount: true, status: true },
+    _sum: { amount: true },
   });
-  const totalPayable = payables.reduce((sum, p) => sum + Number(p.amount), 0);
-  const totalPaid = payables
-    .filter((p) => p.status === "PAGO")
-    .reduce((sum, p) => sum + Number(p.amount), 0);
 
-  const receivables = await prisma.accountsReceivable.findMany({
-    where: dateFilter,
-    select: { amount: true, status: true },
-  });
-  const totalReceivable = receivables.reduce(
-    (sum, r) => sum + Number(r.amount),
+  const totalPayable = payablesGrouped.reduce(
+    (acc, curr) => acc + Number(curr._sum.amount || 0),
     0,
   );
-  const totalReceived = receivables
+  const totalPaid = payablesGrouped
+    .filter((p) => p.status === "PAGO")
+    .reduce((acc, curr) => acc + Number(curr._sum.amount || 0), 0);
+
+  const receivablesGrouped = await prisma.accountsReceivable.groupBy({
+    by: ["status"],
+    where: dateFilter,
+    _sum: { amount: true },
+  });
+
+  const totalReceivable = receivablesGrouped.reduce(
+    (acc, curr) => acc + Number(curr._sum.amount || 0),
+    0,
+  );
+  const totalReceived = receivablesGrouped
     .filter((r) => r.status === "RECEBIDO")
-    .reduce((sum, r) => sum + Number(r.amount), 0);
+    .reduce((acc, curr) => acc + Number(curr._sum.amount || 0), 0);
 
   // Orders by status (filtered by period)
-  const purchaseOrders = await prisma.purchaseOrder.findMany({
+  const purchaseOrdersGrouped = await prisma.purchaseOrder.groupBy({
+    by: ["status"],
     where: dateFilter,
-    select: { status: true },
+    _count: { status: true },
   });
 
   const purchaseOrdersByStatus: Record<string, number> = {};
-  for (const po of purchaseOrders) {
-    purchaseOrdersByStatus[po.status] =
-      (purchaseOrdersByStatus[po.status] || 0) + 1;
-  }
+  purchaseOrdersGrouped.forEach((po) => {
+    purchaseOrdersByStatus[po.status] = po._count.status;
+  });
 
-  const salesOrders = await prisma.salesOrder.findMany({
+  const salesOrdersGrouped = await prisma.salesOrder.groupBy({
+    by: ["status"],
     where: dateFilter,
-    select: { status: true },
+    _count: { status: true },
   });
 
   const salesOrdersByStatus: Record<string, number> = {};
-  for (const so of salesOrders) {
-    salesOrdersByStatus[so.status] = (salesOrdersByStatus[so.status] || 0) + 1;
-  }
+  salesOrdersGrouped.forEach((so) => {
+    salesOrdersByStatus[so.status] = so._count.status;
+  });
 
   return {
     totalProducts,

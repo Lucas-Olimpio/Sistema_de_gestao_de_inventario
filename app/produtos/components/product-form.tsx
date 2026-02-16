@@ -5,6 +5,7 @@ import Link from "next/link";
 import { State } from "@/app/produtos/actions";
 import { useEffect, useState } from "react";
 import { Category } from "@/lib/types";
+import { toast } from "sonner";
 
 interface ProductFormProps {
   initialData?: {
@@ -47,18 +48,34 @@ export default function ProductForm({
   });
 
   useEffect(() => {
-    if (initialData) {
-      setForm({
-        name: initialData.name,
-        description: initialData.description || "",
-        sku: initialData.sku,
-        price: initialData.price,
-        quantity: initialData.quantity,
-        minStock: initialData.minStock,
-        categoryId: initialData.categoryId,
-      });
-    }
+    useEffect(() => {
+      if (initialData) {
+        setForm({
+          name: initialData.name,
+          description: initialData.description || "",
+          sku: initialData.sku,
+          price: (Number(initialData.price) / 100).toFixed(2),
+          quantity: initialData.quantity.toString(),
+          minStock: initialData.minStock.toString(),
+          categoryId: initialData.categoryId,
+        });
+      }
+    }, [initialData]);
   }, [initialData]);
+
+  useEffect(() => {
+    if (state?.message) {
+      if (state.errors) {
+        toast.error(state.message);
+      } else {
+        toast.success(state.message);
+      }
+    } else if (state?.errors) {
+      // Show first error found
+      const firstError = Object.values(state.errors).flat()[0];
+      toast.error(firstError || "Por favor, verifique os erros no formulário.");
+    }
+  }, [state]);
 
   const inputStyle: React.CSSProperties = {
     width: "100%",
@@ -100,6 +117,7 @@ export default function ProductForm({
           name="name"
           required
           placeholder="Ex: Notebook Dell Inspiron"
+          defaultValue={form.name} // changed to defaultValue to avoid controlled input issues with server actions if not strictly needed, but kept controlled for updates if valid. Actually sticking to controlled as per previous state.
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
           style={inputStyle}
@@ -176,7 +194,7 @@ export default function ProductForm({
           <select
             id="categoryId"
             name="categoryId"
-            required // Added required
+            required
             value={form.categoryId}
             onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
             style={{ ...inputStyle, cursor: "pointer" }}
@@ -321,6 +339,7 @@ export default function ProductForm({
             fontWeight: 600,
             cursor: isPending ? "not-allowed" : "pointer",
             opacity: isPending ? 0.7 : 1,
+            boxShadow: "0 2px 10px rgba(124, 58, 237, 0.3)",
           }}
         >
           <Save size={16} />

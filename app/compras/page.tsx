@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Plus, ShoppingCart } from "lucide-react";
+import { toast } from "sonner";
 import Modal from "../components/modal";
 import PageHeader from "@/app/components/page-header";
 import OrderTable from "./components/order-table";
@@ -54,7 +55,7 @@ export default function ComprasPage() {
       }));
 
     if (items.length === 0) {
-      setError("Adicione pelo menos um item à ordem");
+      toast.error("Adicione pelo menos um item à ordem");
       return;
     }
 
@@ -67,10 +68,10 @@ export default function ComprasPage() {
     if (res.ok) {
       setModalOpen(false);
       fetchOrders();
+      toast.success("Ordem de compra criada com sucesso!");
     } else {
       const resData = await res.json();
-      setError(resData.error || "Erro ao criar ordem");
-      throw new Error(resData.error);
+      toast.error(resData.error || "Erro ao criar ordem");
     }
   };
 
@@ -83,9 +84,10 @@ export default function ComprasPage() {
     if (res.ok) {
       fetchOrders();
       setDetailOrder(null);
+      toast.success("Status atualizado com sucesso!");
     } else {
       const data = await res.json();
-      alert(data.error || "Erro ao atualizar status");
+      toast.error(data.error || "Erro ao atualizar status");
     }
   };
 
@@ -96,9 +98,10 @@ export default function ComprasPage() {
     });
     if (res.ok) {
       fetchOrders();
+      toast.success("Ordem excluída com sucesso!");
     } else {
       const data = await res.json();
-      alert(data.error || "Erro ao excluir");
+      toast.error(data.error || "Erro ao excluir");
     }
   };
 

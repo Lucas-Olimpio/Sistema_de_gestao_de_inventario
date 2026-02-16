@@ -4,7 +4,10 @@ export const productSchema = z.object({
   name: z.string().min(1, "O nome é obrigatório"),
   description: z.string().optional(),
   sku: z.string().min(1, "O SKU é obrigatório"),
-  price: z.coerce.number().min(0.01, "O preço deve ser maior que 0"),
+  price: z.coerce
+    .number()
+    .min(0.01, "O preço deve ser maior que 0")
+    .transform((val) => Math.round(val * 100)),
   quantity: z.coerce
     .number()
     .int()
@@ -30,7 +33,10 @@ export const goodsReceiptSchema = z.object({
 export const orderItemSchema = z.object({
   productId: z.string().uuid(),
   quantity: z.coerce.number().int().min(1, "Quantidade deve ser pelo menos 1"),
-  unitPrice: z.coerce.number().min(0.01, "Preço unitário inválido"),
+  unitPrice: z.coerce
+    .number()
+    .min(0.01, "Preço unitário inválido")
+    .transform((val) => Math.round(val * 100)),
 });
 
 export const salesOrderSchema = z.object({
@@ -40,3 +46,9 @@ export const salesOrderSchema = z.object({
 });
 
 export type ProductSchema = z.infer<typeof productSchema>;
+
+export const purchaseOrderSchema = z.object({
+  supplierId: z.string().uuid("Selecione um fornecedor"),
+  items: z.array(orderItemSchema).min(1, "Adicione pelo menos um item"),
+  notes: z.string().optional(),
+});

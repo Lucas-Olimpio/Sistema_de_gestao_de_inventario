@@ -22,146 +22,146 @@ model Product {
   name               String
   description        String?
   sku                String              @unique
-  price              Decimal
-  quantity           Int                 @default(0)
-  minStock           Int                 @default(5)
-  categoryId         String
-  category           Category            @relation(fields: [categoryId], references: [id])
-  movements          StockMovement[]
-  purchaseOrderItems PurchaseOrderItem[]
-  goodsReceiptItems  GoodsReceiptItem[]
-  salesOrderItems    SalesOrderItem[]
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
-  deletedAt          DateTime?
-}
-
-model StockMovement {
-  id        String   @id @default(cuid())
-  productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  type      String   // "IN" or "OUT"
-  quantity  Int
-  reason    String?
-  createdAt DateTime @default(now())
-}
-
-// ─── Purchase Module ───────────────────────────────────────
-
-model Supplier {
-  id             String          @id @default(cuid())
-  name           String          @unique
-  cnpj           String?         @unique
-  email          String?
-  phone          String?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  deletedAt      DateTime?
-  purchaseOrders PurchaseOrder[]
-}
-
-model PurchaseOrder {
-  id            String              @id @default(cuid())
-  code          String              @unique
-  supplierId    String
-  supplier      Supplier            @relation(fields: [supplierId], references: [id])
-  status        String              @default("PENDENTE")
-  totalValue    Decimal             @default(0)
-  notes         String?
-  items         PurchaseOrderItem[]
-  goodsReceipts GoodsReceipt[]
-  payable       AccountsPayable?
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
-  deletedAt     DateTime?
-}
-
-model PurchaseOrderItem {
-  id              String        @id @default(cuid())
-  purchaseOrderId String
-  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
-  productId       String
-  product         Product       @relation(fields: [productId], references: [id])
-  quantity        Int
-  unitPrice       Decimal
-  receivedQty     Int           @default(0)
-}
-
-model GoodsReceipt {
-  id              String             @id @default(cuid())
-  purchaseOrderId String
-  purchaseOrder   PurchaseOrder      @relation(fields: [purchaseOrderId], references: [id])
-  notes           String?
-  items           GoodsReceiptItem[]
-  createdAt       DateTime           @default(now())
-}
-
-model GoodsReceiptItem {
-  id             String       @id @default(cuid())
-  goodsReceiptId String
-  goodsReceipt   GoodsReceipt @relation(fields: [goodsReceiptId], references: [id], onDelete: Cascade)
-  productId      String
-  product        Product      @relation(fields: [productId], references: [id])
-  receivedQty    Int
-  hasDivergence  Boolean      @default(false)
-}
-
-model AccountsPayable {
-  id              String        @id @default(cuid())
-  purchaseOrderId String        @unique
-  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
-  amount          Decimal
-  status          String        @default("PENDENTE")
-  dueDate         DateTime?
-  paidAt          DateTime?
-  createdAt       DateTime      @default(now())
-}
-
-// ─── Sales Module ──────────────────────────────────────────
-
-model Customer {
-  id          String       @id @default(cuid())
-  name        String
-  cpfCnpj     String?      @unique
-  email       String?
-  phone       String?
-  address     String?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  deletedAt   DateTime?
-  salesOrders SalesOrder[]
-}
-
-model SalesOrder {
-  id         String              @id @default(cuid())
-  code       String              @unique
-  customerId String
-  customer   Customer            @relation(fields: [customerId], references: [id])
-  status     String              @default("PENDENTE")
-  totalValue Decimal             @default(0)
-  notes      String?
-  items      SalesOrderItem[]
-  receivable AccountsReceivable?
-  createdAt  DateTime            @default(now())
-  updatedAt  DateTime            @updatedAt
-  deletedAt  DateTime?
-}
-
-model SalesOrderItem {
-  id           String     @id @default(cuid())
-  salesOrderId String
-  salesOrder   SalesOrder @relation(fields: [salesOrderId], references: [id], onDelete: Cascade)
-  productId    String
-  product      Product    @relation(fields: [productId], references: [id])
-  quantity     Int
-  unitPrice    Decimal
-}
-
-model AccountsReceivable {
-  id           String     @id @default(cuid())
-  salesOrderId String     @unique
-  salesOrder   SalesOrder @relation(fields: [salesOrderId], references: [id])
-  amount       Decimal
+    price              Int                 @default(0)
+    quantity           Int                 @default(0)
+    minStock           Int                 @default(5)
+    categoryId         String
+    category           Category            @relation(fields: [categoryId], references: [id])
+    movements          StockMovement[]
+    purchaseOrderItems PurchaseOrderItem[]
+    goodsReceiptItems  GoodsReceiptItem[]
+    salesOrderItems    SalesOrderItem[]
+    createdAt          DateTime            @default(now())
+    updatedAt          DateTime            @updatedAt
+    deletedAt          DateTime?
+  }
+  
+  model StockMovement {
+    id        String   @id @default(cuid())
+    productId String
+    product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+    type      String   // "IN" or "OUT"
+    quantity  Int
+    reason    String?
+    createdAt DateTime @default(now())
+  }
+  
+  // ─── Purchase Module ───────────────────────────────────────
+  
+  model Supplier {
+    id             String          @id @default(cuid())
+    name           String          @unique
+    cnpj           String?         @unique
+    email          String?
+    phone          String?
+    createdAt      DateTime        @default(now())
+    updatedAt      DateTime        @updatedAt
+    deletedAt      DateTime?
+    purchaseOrders PurchaseOrder[]
+  }
+  
+  model PurchaseOrder {
+    id            String              @id @default(cuid())
+    code          String              @unique
+    supplierId    String
+    supplier      Supplier            @relation(fields: [supplierId], references: [id])
+    status        String              @default("PENDENTE")
+    totalValue    Int                 @default(0)
+    notes         String?
+    items         PurchaseOrderItem[]
+    goodsReceipts GoodsReceipt[]
+    payable       AccountsPayable?
+    createdAt     DateTime            @default(now())
+    updatedAt     DateTime            @updatedAt
+    deletedAt     DateTime?
+  }
+  
+  model PurchaseOrderItem {
+    id              String        @id @default(cuid())
+    purchaseOrderId String
+    purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+    productId       String
+    product         Product       @relation(fields: [productId], references: [id])
+    quantity        Int
+    unitPrice       Int
+    receivedQty     Int           @default(0)
+  }
+  
+  model GoodsReceipt {
+    id              String             @id @default(cuid())
+    purchaseOrderId String
+    purchaseOrder   PurchaseOrder      @relation(fields: [purchaseOrderId], references: [id])
+    notes           String?
+    items           GoodsReceiptItem[]
+    createdAt       DateTime           @default(now())
+  }
+  
+  model GoodsReceiptItem {
+    id             String       @id @default(cuid())
+    goodsReceiptId String
+    goodsReceipt   GoodsReceipt @relation(fields: [goodsReceiptId], references: [id], onDelete: Cascade)
+    productId      String
+    product        Product      @relation(fields: [productId], references: [id])
+    receivedQty    Int
+    hasDivergence  Boolean      @default(false)
+  }
+  
+  model AccountsPayable {
+    id              String        @id @default(cuid())
+    purchaseOrderId String        @unique
+    purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+    amount          Int
+    status          String        @default("PENDENTE")
+    dueDate         DateTime?
+    paidAt          DateTime?
+    createdAt       DateTime      @default(now())
+  }
+  
+  // ─── Sales Module ──────────────────────────────────────────
+  
+  model Customer {
+    id          String       @id @default(cuid())
+    name        String
+    cpfCnpj     String?      @unique
+    email       String?
+    phone       String?
+    address     String?
+    createdAt   DateTime     @default(now())
+    updatedAt   DateTime     @updatedAt
+    deletedAt   DateTime?
+    salesOrders SalesOrder[]
+  }
+  
+  model SalesOrder {
+    id         String              @id @default(cuid())
+    code       String              @unique
+    customerId String
+    customer   Customer            @relation(fields: [customerId], references: [id])
+    status     String              @default("PENDENTE")
+    totalValue Int                 @default(0)
+    notes      String?
+    items      SalesOrderItem[]
+    receivable AccountsReceivable?
+    createdAt  DateTime            @default(now())
+    updatedAt  DateTime            @updatedAt
+    deletedAt  DateTime?
+  }
+  
+  model SalesOrderItem {
+    id           String     @id @default(cuid())
+    salesOrderId String
+    salesOrder   SalesOrder @relation(fields: [salesOrderId], references: [id], onDelete: Cascade)
+    productId    String
+    product      Product    @relation(fields: [productId], references: [id])
+    quantity     Int
+    unitPrice    Int
+  }
+  
+  model AccountsReceivable {
+    id           String     @id @default(cuid())
+    salesOrderId String     @unique
+    salesOrder   SalesOrder @relation(fields: [salesOrderId], references: [id])
+    amount       Int
   status       String     @default("PENDENTE")
   dueDate      DateTime?
   receivedAt   DateTime?

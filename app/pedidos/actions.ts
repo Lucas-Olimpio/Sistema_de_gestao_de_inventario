@@ -114,7 +114,10 @@ export async function updateSalesOrderStatusAction(id: string, status: string) {
         // Deduct Stock & Create Movements
         for (const item of order.items) {
           await tx.product.update({
-            where: { id: item.productId },
+            where: {
+              id: item.productId,
+              quantity: { gte: item.quantity },
+            },
             data: { quantity: { decrement: item.quantity } },
           });
 

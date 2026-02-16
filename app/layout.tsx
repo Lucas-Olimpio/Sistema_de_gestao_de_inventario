@@ -6,6 +6,7 @@ import Header from "./components/header";
 import { SidebarProvider } from "./components/sidebar-context";
 import LayoutShell from "./components/layout-shell";
 import Providers from "./providers";
+import { Toaster } from "@/components/ui/sonner";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -36,6 +37,7 @@ export default function RootLayout({
               </LayoutShell>
             </div>
           </SidebarProvider>
+          <Toaster />
         </Providers>
       </body>
     </html>

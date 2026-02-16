@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { purchaseOrderSchema } from "@/lib/schemas";
 
 export async function GET(request: Request) {
   try {
@@ -45,14 +46,21 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { supplierId, notes, items } = body;
 
-    if (!supplierId || !items || items.length === 0) {
+    const validatedData = purchaseOrderSchema.safeParse(body);
+
+    if (!validatedData.success) {
       return NextResponse.json(
-        { error: "Fornecedor e pelo menos um item são obrigatórios" },
+        {
+          error:
+            "Dados inválidos: " +
+            JSON.stringify(validatedData.error.flatten().fieldErrors),
+        },
         { status: 400 },
       );
     }
+
+    const { supplierId, notes, items } = validatedData.data;
 
     // Generate next PO code
     const lastPO = await prisma.purchaseOrder.findFirst({
@@ -64,11 +72,9 @@ export async function POST(request: Request) {
       : 1;
     const code = `PO-${String(nextNumber).padStart(4, "0")}`;
 
-    // Calculate total
-    // Calculate total
+    // Calculate total (items already transformed to cents by schema)
     const totalValue = items.reduce(
-      (sum: number, item: { quantity: number; unitPrice: number }) =>
-        sum + item.quantity * Number(item.unitPrice),
+      (sum: number, item: any) => sum + item.quantity * item.unitPrice,
       0,
     );
 
@@ -79,17 +85,11 @@ export async function POST(request: Request) {
         notes: notes || null,
         totalValue,
         items: {
-          create: items.map(
-            (item: {
-              productId: string;
-              quantity: number;
-              unitPrice: number;
-            }) => ({
-              productId: item.productId,
-              quantity: item.quantity,
-              unitPrice: item.unitPrice,
-            }),
-          ),
+          create: items.map((item) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+          })),
         },
       },
       include: {

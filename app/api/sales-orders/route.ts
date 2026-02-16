@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { salesOrderSchema } from "@/lib/schemas";
 
 export async function GET(request: Request) {
   try {
@@ -45,14 +46,22 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { customerId, notes, items } = body;
 
-    if (!customerId || !items || items.length === 0) {
+    // Validate and transform with Zod
+    const validatedData = salesOrderSchema.safeParse(body);
+
+    if (!validatedData.success) {
       return NextResponse.json(
-        { error: "Cliente e itens são obrigatórios" },
+        {
+          error:
+            "Dados inválidos: " +
+            JSON.stringify(validatedData.error.flatten().fieldErrors),
+        },
         { status: 400 },
       );
     }
+
+    const { customerId, notes, items } = validatedData.data;
 
     // Generate sequential code
     const lastOrder = await prisma.salesOrder.findFirst({
@@ -67,11 +76,9 @@ export async function POST(request: Request) {
     }
     const code = `VD-${String(nextNumber).padStart(4, "0")}`;
 
-    // Calculate total
-    // Calculate total
+    // Calculate total (items already transformed to cents by schema)
     const totalValue = items.reduce(
-      (sum: number, item: { quantity: number; unitPrice: number }) =>
-        sum + item.quantity * Number(item.unitPrice),
+      (sum: number, item: any) => sum + item.quantity * item.unitPrice,
       0,
     );
 
@@ -82,17 +89,11 @@ export async function POST(request: Request) {
         notes: notes || null,
         totalValue,
         items: {
-          create: items.map(
-            (item: {
-              productId: string;
-              quantity: number;
-              unitPrice: number;
-            }) => ({
-              productId: item.productId,
-              quantity: item.quantity,
-              unitPrice: item.unitPrice,
-            }),
-          ),
+          create: items.map((item) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+          })),
         },
       },
       include: {

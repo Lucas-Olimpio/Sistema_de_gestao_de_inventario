@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Plus, ShoppingBag } from "lucide-react";
+import { toast } from "sonner";
 import Modal from "../components/modal";
 import PageHeader from "@/app/components/page-header";
 import OrderTable from "./components/order-table";
@@ -44,7 +45,7 @@ export default function PedidosPage() {
       }));
 
     if (items.length === 0) {
-      setError("Adicione pelo menos um item ao pedido");
+      toast.error("Adicione pelo menos um item ao pedido");
       return;
     }
 
@@ -57,12 +58,10 @@ export default function PedidosPage() {
     if (res.ok) {
       setModalOpen(false);
       queryClient.invalidateQueries({ queryKey: ["sales-orders"] });
-      // Invalidate products as stock might change? No, stock changes on FATURADA status.
-      // But creating order doesn't change stock yet (PENDENTE).
+      toast.success("Pedido de venda criado com sucesso!");
     } else {
       const resData = await res.json();
-      setError(resData.error || "Erro ao criar pedido");
-      throw new Error(resData.error); // Or just set error state
+      toast.error(resData.error || "Erro ao criar pedido");
     }
   };
 
@@ -76,9 +75,10 @@ export default function PedidosPage() {
       queryClient.invalidateQueries({ queryKey: ["sales-orders"] });
       queryClient.invalidateQueries({ queryKey: ["products"] }); // Stock update
       setDetailOrder(null);
+      toast.success("Status atualizado com sucesso!");
     } else {
       const data = await res.json();
-      alert(data.error || "Erro ao atualizar status");
+      toast.error(data.error || "Erro ao atualizar status");
     }
   };
 
@@ -87,9 +87,10 @@ export default function PedidosPage() {
     const res = await fetch(`/api/sales-orders/${id}`, { method: "DELETE" });
     if (res.ok) {
       queryClient.invalidateQueries({ queryKey: ["sales-orders"] });
+      toast.success("Pedido excluído com sucesso!");
     } else {
       const data = await res.json();
-      alert(data.error || "Erro ao excluir");
+      toast.error(data.error || "Erro ao excluir");
     }
   };
 

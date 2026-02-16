@@ -1,3 +1,7 @@
+/**
+ * Formats a value in cents (integer) to BRL currency string.
+ * Example: 1000 -> "R$ 10,00"
+ */
 export function formatCurrency(value: number | string | any): string {
   const numberValue = Number(value);
   if (isNaN(numberValue))
@@ -9,7 +13,16 @@ export function formatCurrency(value: number | string | any): string {
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
-  }).format(numberValue);
+  }).format(numberValue / 100);
+}
+
+export function parseCurrency(value: string): number {
+  if (!value) return 0;
+  // Remove currency symbol, dots and replace comma with dot
+  // Ex: "R$ 1.234,56" -> 1234.56 -> 123456
+  const cleanValue = value.replace(/[^\d,]/g, "").replace(",", ".");
+  const floatValue = parseFloat(cleanValue);
+  return Math.round(floatValue * 100);
 }
 
 export function formatDate(date: Date | string): string {
