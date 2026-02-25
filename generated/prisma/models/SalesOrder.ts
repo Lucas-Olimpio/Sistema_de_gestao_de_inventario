@@ -251,7 +251,7 @@ export type SalesOrderWhereInput = {
   customer?: Prisma.XOR<Prisma.CustomerScalarRelationFilter, Prisma.CustomerWhereInput>
   items?: Prisma.SalesOrderItemListRelationFilter
   installments?: Prisma.InstallmentListRelationFilter
-  receivable?: Prisma.XOR<Prisma.AccountsReceivableNullableScalarRelationFilter, Prisma.AccountsReceivableWhereInput> | null
+  receivables?: Prisma.AccountsReceivableListRelationFilter
 }
 
 export type SalesOrderOrderByWithRelationInput = {
@@ -267,7 +267,7 @@ export type SalesOrderOrderByWithRelationInput = {
   customer?: Prisma.CustomerOrderByWithRelationInput
   items?: Prisma.SalesOrderItemOrderByRelationAggregateInput
   installments?: Prisma.InstallmentOrderByRelationAggregateInput
-  receivable?: Prisma.AccountsReceivableOrderByWithRelationInput
+  receivables?: Prisma.AccountsReceivableOrderByRelationAggregateInput
 }
 
 export type SalesOrderWhereUniqueInput = Prisma.AtLeast<{
@@ -286,7 +286,7 @@ export type SalesOrderWhereUniqueInput = Prisma.AtLeast<{
   customer?: Prisma.XOR<Prisma.CustomerScalarRelationFilter, Prisma.CustomerWhereInput>
   items?: Prisma.SalesOrderItemListRelationFilter
   installments?: Prisma.InstallmentListRelationFilter
-  receivable?: Prisma.XOR<Prisma.AccountsReceivableNullableScalarRelationFilter, Prisma.AccountsReceivableWhereInput> | null
+  receivables?: Prisma.AccountsReceivableListRelationFilter
 }, "id" | "code">
 
 export type SalesOrderOrderByWithAggregationInput = {
@@ -333,7 +333,7 @@ export type SalesOrderCreateInput = {
   customer: Prisma.CustomerCreateNestedOneWithoutSalesOrdersInput
   items?: Prisma.SalesOrderItemCreateNestedManyWithoutSalesOrderInput
   installments?: Prisma.InstallmentCreateNestedManyWithoutSalesOrderInput
-  receivable?: Prisma.AccountsReceivableCreateNestedOneWithoutSalesOrderInput
+  receivables?: Prisma.AccountsReceivableCreateNestedManyWithoutSalesOrderInput
 }
 
 export type SalesOrderUncheckedCreateInput = {
@@ -348,7 +348,7 @@ export type SalesOrderUncheckedCreateInput = {
   deletedAt?: Date | string | null
   items?: Prisma.SalesOrderItemUncheckedCreateNestedManyWithoutSalesOrderInput
   installments?: Prisma.InstallmentUncheckedCreateNestedManyWithoutSalesOrderInput
-  receivable?: Prisma.AccountsReceivableUncheckedCreateNestedOneWithoutSalesOrderInput
+  receivables?: Prisma.AccountsReceivableUncheckedCreateNestedManyWithoutSalesOrderInput
 }
 
 export type SalesOrderUpdateInput = {
@@ -363,7 +363,7 @@ export type SalesOrderUpdateInput = {
   customer?: Prisma.CustomerUpdateOneRequiredWithoutSalesOrdersNestedInput
   items?: Prisma.SalesOrderItemUpdateManyWithoutSalesOrderNestedInput
   installments?: Prisma.InstallmentUpdateManyWithoutSalesOrderNestedInput
-  receivable?: Prisma.AccountsReceivableUpdateOneWithoutSalesOrderNestedInput
+  receivables?: Prisma.AccountsReceivableUpdateManyWithoutSalesOrderNestedInput
 }
 
 export type SalesOrderUncheckedUpdateInput = {
@@ -378,7 +378,7 @@ export type SalesOrderUncheckedUpdateInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   items?: Prisma.SalesOrderItemUncheckedUpdateManyWithoutSalesOrderNestedInput
   installments?: Prisma.InstallmentUncheckedUpdateManyWithoutSalesOrderNestedInput
-  receivable?: Prisma.AccountsReceivableUncheckedUpdateOneWithoutSalesOrderNestedInput
+  receivables?: Prisma.AccountsReceivableUncheckedUpdateManyWithoutSalesOrderNestedInput
 }
 
 export type SalesOrderCreateManyInput = {
@@ -531,18 +531,18 @@ export type SalesOrderUpdateOneRequiredWithoutItemsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.SalesOrderUpdateToOneWithWhereWithoutItemsInput, Prisma.SalesOrderUpdateWithoutItemsInput>, Prisma.SalesOrderUncheckedUpdateWithoutItemsInput>
 }
 
-export type SalesOrderCreateNestedOneWithoutReceivableInput = {
-  create?: Prisma.XOR<Prisma.SalesOrderCreateWithoutReceivableInput, Prisma.SalesOrderUncheckedCreateWithoutReceivableInput>
-  connectOrCreate?: Prisma.SalesOrderCreateOrConnectWithoutReceivableInput
+export type SalesOrderCreateNestedOneWithoutReceivablesInput = {
+  create?: Prisma.XOR<Prisma.SalesOrderCreateWithoutReceivablesInput, Prisma.SalesOrderUncheckedCreateWithoutReceivablesInput>
+  connectOrCreate?: Prisma.SalesOrderCreateOrConnectWithoutReceivablesInput
   connect?: Prisma.SalesOrderWhereUniqueInput
 }
 
-export type SalesOrderUpdateOneRequiredWithoutReceivableNestedInput = {
-  create?: Prisma.XOR<Prisma.SalesOrderCreateWithoutReceivableInput, Prisma.SalesOrderUncheckedCreateWithoutReceivableInput>
-  connectOrCreate?: Prisma.SalesOrderCreateOrConnectWithoutReceivableInput
-  upsert?: Prisma.SalesOrderUpsertWithoutReceivableInput
+export type SalesOrderUpdateOneRequiredWithoutReceivablesNestedInput = {
+  create?: Prisma.XOR<Prisma.SalesOrderCreateWithoutReceivablesInput, Prisma.SalesOrderUncheckedCreateWithoutReceivablesInput>
+  connectOrCreate?: Prisma.SalesOrderCreateOrConnectWithoutReceivablesInput
+  upsert?: Prisma.SalesOrderUpsertWithoutReceivablesInput
   connect?: Prisma.SalesOrderWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.SalesOrderUpdateToOneWithWhereWithoutReceivableInput, Prisma.SalesOrderUpdateWithoutReceivableInput>, Prisma.SalesOrderUncheckedUpdateWithoutReceivableInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SalesOrderUpdateToOneWithWhereWithoutReceivablesInput, Prisma.SalesOrderUpdateWithoutReceivablesInput>, Prisma.SalesOrderUncheckedUpdateWithoutReceivablesInput>
 }
 
 export type SalesOrderCreateNestedOneWithoutInstallmentsInput = {
@@ -570,7 +570,7 @@ export type SalesOrderCreateWithoutCustomerInput = {
   deletedAt?: Date | string | null
   items?: Prisma.SalesOrderItemCreateNestedManyWithoutSalesOrderInput
   installments?: Prisma.InstallmentCreateNestedManyWithoutSalesOrderInput
-  receivable?: Prisma.AccountsReceivableCreateNestedOneWithoutSalesOrderInput
+  receivables?: Prisma.AccountsReceivableCreateNestedManyWithoutSalesOrderInput
 }
 
 export type SalesOrderUncheckedCreateWithoutCustomerInput = {
@@ -584,7 +584,7 @@ export type SalesOrderUncheckedCreateWithoutCustomerInput = {
   deletedAt?: Date | string | null
   items?: Prisma.SalesOrderItemUncheckedCreateNestedManyWithoutSalesOrderInput
   installments?: Prisma.InstallmentUncheckedCreateNestedManyWithoutSalesOrderInput
-  receivable?: Prisma.AccountsReceivableUncheckedCreateNestedOneWithoutSalesOrderInput
+  receivables?: Prisma.AccountsReceivableUncheckedCreateNestedManyWithoutSalesOrderInput
 }
 
 export type SalesOrderCreateOrConnectWithoutCustomerInput = {
@@ -638,7 +638,7 @@ export type SalesOrderCreateWithoutItemsInput = {
   deletedAt?: Date | string | null
   customer: Prisma.CustomerCreateNestedOneWithoutSalesOrdersInput
   installments?: Prisma.InstallmentCreateNestedManyWithoutSalesOrderInput
-  receivable?: Prisma.AccountsReceivableCreateNestedOneWithoutSalesOrderInput
+  receivables?: Prisma.AccountsReceivableCreateNestedManyWithoutSalesOrderInput
 }
 
 export type SalesOrderUncheckedCreateWithoutItemsInput = {
@@ -652,7 +652,7 @@ export type SalesOrderUncheckedCreateWithoutItemsInput = {
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   installments?: Prisma.InstallmentUncheckedCreateNestedManyWithoutSalesOrderInput
-  receivable?: Prisma.AccountsReceivableUncheckedCreateNestedOneWithoutSalesOrderInput
+  receivables?: Prisma.AccountsReceivableUncheckedCreateNestedManyWithoutSalesOrderInput
 }
 
 export type SalesOrderCreateOrConnectWithoutItemsInput = {
@@ -682,7 +682,7 @@ export type SalesOrderUpdateWithoutItemsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   customer?: Prisma.CustomerUpdateOneRequiredWithoutSalesOrdersNestedInput
   installments?: Prisma.InstallmentUpdateManyWithoutSalesOrderNestedInput
-  receivable?: Prisma.AccountsReceivableUpdateOneWithoutSalesOrderNestedInput
+  receivables?: Prisma.AccountsReceivableUpdateManyWithoutSalesOrderNestedInput
 }
 
 export type SalesOrderUncheckedUpdateWithoutItemsInput = {
@@ -696,10 +696,10 @@ export type SalesOrderUncheckedUpdateWithoutItemsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   installments?: Prisma.InstallmentUncheckedUpdateManyWithoutSalesOrderNestedInput
-  receivable?: Prisma.AccountsReceivableUncheckedUpdateOneWithoutSalesOrderNestedInput
+  receivables?: Prisma.AccountsReceivableUncheckedUpdateManyWithoutSalesOrderNestedInput
 }
 
-export type SalesOrderCreateWithoutReceivableInput = {
+export type SalesOrderCreateWithoutReceivablesInput = {
   id?: string
   code: string
   status?: string
@@ -713,7 +713,7 @@ export type SalesOrderCreateWithoutReceivableInput = {
   installments?: Prisma.InstallmentCreateNestedManyWithoutSalesOrderInput
 }
 
-export type SalesOrderUncheckedCreateWithoutReceivableInput = {
+export type SalesOrderUncheckedCreateWithoutReceivablesInput = {
   id?: string
   code: string
   customerId: string
@@ -727,23 +727,23 @@ export type SalesOrderUncheckedCreateWithoutReceivableInput = {
   installments?: Prisma.InstallmentUncheckedCreateNestedManyWithoutSalesOrderInput
 }
 
-export type SalesOrderCreateOrConnectWithoutReceivableInput = {
+export type SalesOrderCreateOrConnectWithoutReceivablesInput = {
   where: Prisma.SalesOrderWhereUniqueInput
-  create: Prisma.XOR<Prisma.SalesOrderCreateWithoutReceivableInput, Prisma.SalesOrderUncheckedCreateWithoutReceivableInput>
+  create: Prisma.XOR<Prisma.SalesOrderCreateWithoutReceivablesInput, Prisma.SalesOrderUncheckedCreateWithoutReceivablesInput>
 }
 
-export type SalesOrderUpsertWithoutReceivableInput = {
-  update: Prisma.XOR<Prisma.SalesOrderUpdateWithoutReceivableInput, Prisma.SalesOrderUncheckedUpdateWithoutReceivableInput>
-  create: Prisma.XOR<Prisma.SalesOrderCreateWithoutReceivableInput, Prisma.SalesOrderUncheckedCreateWithoutReceivableInput>
+export type SalesOrderUpsertWithoutReceivablesInput = {
+  update: Prisma.XOR<Prisma.SalesOrderUpdateWithoutReceivablesInput, Prisma.SalesOrderUncheckedUpdateWithoutReceivablesInput>
+  create: Prisma.XOR<Prisma.SalesOrderCreateWithoutReceivablesInput, Prisma.SalesOrderUncheckedCreateWithoutReceivablesInput>
   where?: Prisma.SalesOrderWhereInput
 }
 
-export type SalesOrderUpdateToOneWithWhereWithoutReceivableInput = {
+export type SalesOrderUpdateToOneWithWhereWithoutReceivablesInput = {
   where?: Prisma.SalesOrderWhereInput
-  data: Prisma.XOR<Prisma.SalesOrderUpdateWithoutReceivableInput, Prisma.SalesOrderUncheckedUpdateWithoutReceivableInput>
+  data: Prisma.XOR<Prisma.SalesOrderUpdateWithoutReceivablesInput, Prisma.SalesOrderUncheckedUpdateWithoutReceivablesInput>
 }
 
-export type SalesOrderUpdateWithoutReceivableInput = {
+export type SalesOrderUpdateWithoutReceivablesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
@@ -757,7 +757,7 @@ export type SalesOrderUpdateWithoutReceivableInput = {
   installments?: Prisma.InstallmentUpdateManyWithoutSalesOrderNestedInput
 }
 
-export type SalesOrderUncheckedUpdateWithoutReceivableInput = {
+export type SalesOrderUncheckedUpdateWithoutReceivablesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
   customerId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -782,7 +782,7 @@ export type SalesOrderCreateWithoutInstallmentsInput = {
   deletedAt?: Date | string | null
   customer: Prisma.CustomerCreateNestedOneWithoutSalesOrdersInput
   items?: Prisma.SalesOrderItemCreateNestedManyWithoutSalesOrderInput
-  receivable?: Prisma.AccountsReceivableCreateNestedOneWithoutSalesOrderInput
+  receivables?: Prisma.AccountsReceivableCreateNestedManyWithoutSalesOrderInput
 }
 
 export type SalesOrderUncheckedCreateWithoutInstallmentsInput = {
@@ -796,7 +796,7 @@ export type SalesOrderUncheckedCreateWithoutInstallmentsInput = {
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   items?: Prisma.SalesOrderItemUncheckedCreateNestedManyWithoutSalesOrderInput
-  receivable?: Prisma.AccountsReceivableUncheckedCreateNestedOneWithoutSalesOrderInput
+  receivables?: Prisma.AccountsReceivableUncheckedCreateNestedManyWithoutSalesOrderInput
 }
 
 export type SalesOrderCreateOrConnectWithoutInstallmentsInput = {
@@ -826,7 +826,7 @@ export type SalesOrderUpdateWithoutInstallmentsInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   customer?: Prisma.CustomerUpdateOneRequiredWithoutSalesOrdersNestedInput
   items?: Prisma.SalesOrderItemUpdateManyWithoutSalesOrderNestedInput
-  receivable?: Prisma.AccountsReceivableUpdateOneWithoutSalesOrderNestedInput
+  receivables?: Prisma.AccountsReceivableUpdateManyWithoutSalesOrderNestedInput
 }
 
 export type SalesOrderUncheckedUpdateWithoutInstallmentsInput = {
@@ -840,7 +840,7 @@ export type SalesOrderUncheckedUpdateWithoutInstallmentsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   items?: Prisma.SalesOrderItemUncheckedUpdateManyWithoutSalesOrderNestedInput
-  receivable?: Prisma.AccountsReceivableUncheckedUpdateOneWithoutSalesOrderNestedInput
+  receivables?: Prisma.AccountsReceivableUncheckedUpdateManyWithoutSalesOrderNestedInput
 }
 
 export type SalesOrderCreateManyCustomerInput = {
@@ -865,7 +865,7 @@ export type SalesOrderUpdateWithoutCustomerInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   items?: Prisma.SalesOrderItemUpdateManyWithoutSalesOrderNestedInput
   installments?: Prisma.InstallmentUpdateManyWithoutSalesOrderNestedInput
-  receivable?: Prisma.AccountsReceivableUpdateOneWithoutSalesOrderNestedInput
+  receivables?: Prisma.AccountsReceivableUpdateManyWithoutSalesOrderNestedInput
 }
 
 export type SalesOrderUncheckedUpdateWithoutCustomerInput = {
@@ -879,7 +879,7 @@ export type SalesOrderUncheckedUpdateWithoutCustomerInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   items?: Prisma.SalesOrderItemUncheckedUpdateManyWithoutSalesOrderNestedInput
   installments?: Prisma.InstallmentUncheckedUpdateManyWithoutSalesOrderNestedInput
-  receivable?: Prisma.AccountsReceivableUncheckedUpdateOneWithoutSalesOrderNestedInput
+  receivables?: Prisma.AccountsReceivableUncheckedUpdateManyWithoutSalesOrderNestedInput
 }
 
 export type SalesOrderUncheckedUpdateManyWithoutCustomerInput = {
@@ -901,11 +901,13 @@ export type SalesOrderUncheckedUpdateManyWithoutCustomerInput = {
 export type SalesOrderCountOutputType = {
   items: number
   installments: number
+  receivables: number
 }
 
 export type SalesOrderCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   items?: boolean | SalesOrderCountOutputTypeCountItemsArgs
   installments?: boolean | SalesOrderCountOutputTypeCountInstallmentsArgs
+  receivables?: boolean | SalesOrderCountOutputTypeCountReceivablesArgs
 }
 
 /**
@@ -932,6 +934,13 @@ export type SalesOrderCountOutputTypeCountInstallmentsArgs<ExtArgs extends runti
   where?: Prisma.InstallmentWhereInput
 }
 
+/**
+ * SalesOrderCountOutputType without action
+ */
+export type SalesOrderCountOutputTypeCountReceivablesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AccountsReceivableWhereInput
+}
+
 
 export type SalesOrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -946,7 +955,7 @@ export type SalesOrderSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   customer?: boolean | Prisma.CustomerDefaultArgs<ExtArgs>
   items?: boolean | Prisma.SalesOrder$itemsArgs<ExtArgs>
   installments?: boolean | Prisma.SalesOrder$installmentsArgs<ExtArgs>
-  receivable?: boolean | Prisma.SalesOrder$receivableArgs<ExtArgs>
+  receivables?: boolean | Prisma.SalesOrder$receivablesArgs<ExtArgs>
   _count?: boolean | Prisma.SalesOrderCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["salesOrder"]>
 
@@ -993,7 +1002,7 @@ export type SalesOrderInclude<ExtArgs extends runtime.Types.Extensions.InternalA
   customer?: boolean | Prisma.CustomerDefaultArgs<ExtArgs>
   items?: boolean | Prisma.SalesOrder$itemsArgs<ExtArgs>
   installments?: boolean | Prisma.SalesOrder$installmentsArgs<ExtArgs>
-  receivable?: boolean | Prisma.SalesOrder$receivableArgs<ExtArgs>
+  receivables?: boolean | Prisma.SalesOrder$receivablesArgs<ExtArgs>
   _count?: boolean | Prisma.SalesOrderCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type SalesOrderIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1009,7 +1018,7 @@ export type $SalesOrderPayload<ExtArgs extends runtime.Types.Extensions.Internal
     customer: Prisma.$CustomerPayload<ExtArgs>
     items: Prisma.$SalesOrderItemPayload<ExtArgs>[]
     installments: Prisma.$InstallmentPayload<ExtArgs>[]
-    receivable: Prisma.$AccountsReceivablePayload<ExtArgs> | null
+    receivables: Prisma.$AccountsReceivablePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1418,7 +1427,7 @@ export interface Prisma__SalesOrderClient<T, Null = never, ExtArgs extends runti
   customer<T extends Prisma.CustomerDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CustomerDefaultArgs<ExtArgs>>): Prisma.Prisma__CustomerClient<runtime.Types.Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   items<T extends Prisma.SalesOrder$itemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SalesOrder$itemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SalesOrderItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   installments<T extends Prisma.SalesOrder$installmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SalesOrder$installmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$InstallmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  receivable<T extends Prisma.SalesOrder$receivableArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SalesOrder$receivableArgs<ExtArgs>>): Prisma.Prisma__AccountsReceivableClient<runtime.Types.Result.GetResult<Prisma.$AccountsReceivablePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  receivables<T extends Prisma.SalesOrder$receivablesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SalesOrder$receivablesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AccountsReceivablePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1899,9 +1908,9 @@ export type SalesOrder$installmentsArgs<ExtArgs extends runtime.Types.Extensions
 }
 
 /**
- * SalesOrder.receivable
+ * SalesOrder.receivables
  */
-export type SalesOrder$receivableArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type SalesOrder$receivablesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
    * Select specific fields to fetch from the AccountsReceivable
    */
@@ -1915,6 +1924,11 @@ export type SalesOrder$receivableArgs<ExtArgs extends runtime.Types.Extensions.I
    */
   include?: Prisma.AccountsReceivableInclude<ExtArgs> | null
   where?: Prisma.AccountsReceivableWhereInput
+  orderBy?: Prisma.AccountsReceivableOrderByWithRelationInput | Prisma.AccountsReceivableOrderByWithRelationInput[]
+  cursor?: Prisma.AccountsReceivableWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AccountsReceivableScalarFieldEnum | Prisma.AccountsReceivableScalarFieldEnum[]
 }
 
 /**

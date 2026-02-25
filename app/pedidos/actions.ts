@@ -5,8 +5,6 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { salesOrderSchema } from "@/lib/schemas";
 
-// --- Sales Order (Vendas) ---
-
 export async function createSalesOrderAction(
   data: z.infer<typeof salesOrderSchema>,
 ) {
@@ -23,8 +21,7 @@ export async function createSalesOrderAction(
   const { customerId, items, notes, installments } = validatedFields.data;
 
   try {
-    // Generate Code
-    // Retry logic for unique code generation (Race Condition Fix)
+    // Retry loop: unique constraint on `code` handles race conditions
     const maxRetries = 5;
     let attempt = 0;
     let created = false;
@@ -32,7 +29,6 @@ export async function createSalesOrderAction(
     while (!created && attempt < maxRetries) {
       attempt++;
       try {
-        // Generate Code (Atomic-like attempt)
         const lastOrder = await prisma.salesOrder.findFirst({
           orderBy: { code: "desc" },
           select: { code: true },
@@ -43,14 +39,9 @@ export async function createSalesOrderAction(
           const match = lastOrder.code.match(/VD-(\d+)/);
           if (match) nextNumber = parseInt(match[1]) + 1;
         }
-        // If we are retrying, maybe add a random jump or just try again (since other transaction might have finished)
-        // But simply calculating nextNumber again is sufficient because findFirst will see the new one IF the other transaction committed.
-        // However, standard race condition: both read same lastOrder.
-        // To mitigate without locking, we can rely on Unique Constraint on `code`.
 
         const code = `VD-${String(nextNumber).padStart(4, "0")}`;
 
-        // Calculate Total
         const totalValue = items.reduce(
           (sum, item) => sum + item.quantity * item.unitPrice,
           0,
@@ -84,14 +75,14 @@ export async function createSalesOrderAction(
         });
         created = true;
       } catch (error: any) {
-        // If error is Unique Constraint Violation on `code`, retry.
+        // Unique constraint violation on `code` → retry
         if (error.code === "P2002" && error.meta?.target?.includes("code")) {
           console.log(
             `Race condition on order code. Retrying attempt ${attempt}...`,
           );
           continue;
         }
-        throw error; // Rethrow other errors
+        throw error;
       }
     }
 
@@ -133,28 +124,14 @@ export async function updateSalesOrderStatusAction(id: string, status: string) {
       };
     }
 
-    // Special logic for FATURADA (Stock deduction + Receivable)
+    // FATURADA: deduct stock + create receivables
     if (status === "FATURADA") {
       await prisma.$transaction(async (tx) => {
-        // Check stock
-        for (const item of order.items) {
-          const product = await tx.product.findUnique({
-            where: { id: item.productId },
-          });
-          if (!product || product.quantity < item.quantity) {
-            throw new Error(
-              `Estoque insuficiente para produto ${product?.name || item.productId}`,
-            );
-          }
-        }
-
-        // Update status
         await tx.salesOrder.update({
           where: { id },
           data: { status: "FATURADA" },
         });
 
-        // Audit Log
         await tx.orderStatusHistory.create({
           data: {
             orderId: id,
@@ -165,15 +142,28 @@ export async function updateSalesOrderStatusAction(id: string, status: string) {
           },
         });
 
-        // Deduct Stock & Create Movements
+        // Deduct stock with optimistic lock (P2025 = insufficient stock)
         for (const item of order.items) {
-          await tx.product.update({
-            where: {
-              id: item.productId,
-              quantity: { gte: item.quantity },
-            },
-            data: { quantity: { decrement: item.quantity } },
-          });
+          try {
+            await tx.product.update({
+              where: {
+                id: item.productId,
+                quantity: { gte: item.quantity },
+              },
+              data: { quantity: { decrement: item.quantity } },
+            });
+          } catch (err: any) {
+            if (err.code === "P2025") {
+              const p = await tx.product.findUnique({
+                where: { id: item.productId },
+                select: { name: true },
+              });
+              throw new Error(
+                `Estoque insuficiente para produto ${p?.name || item.productId}`,
+              );
+            }
+            throw err;
+          }
 
           await tx.stockMovement.create({
             data: {
@@ -185,13 +175,11 @@ export async function updateSalesOrderStatusAction(id: string, status: string) {
           });
         }
 
-        // Check for installments
         const installments = await tx.installment.findMany({
           where: { salesOrderId: id },
         });
 
         if (installments.length > 0) {
-          // Create a receivable for each installment
           for (const installment of installments) {
             await tx.accountsReceivable.create({
               data: {
@@ -203,18 +191,17 @@ export async function updateSalesOrderStatusAction(id: string, status: string) {
             });
           }
         } else {
-          // Create single Receivable for total value (fallback)
+          // Fallback: single receivable for total
           await tx.accountsReceivable.create({
             data: {
               salesOrderId: id,
               amount: order.totalValue,
-              dueDate: new Date(), // Immediate due date for single payment
+              dueDate: new Date(),
             },
           });
         }
       });
     } else {
-      // Simple update with Audit Log
       await prisma.$transaction(async (tx) => {
         await tx.salesOrder.update({
           where: { id },

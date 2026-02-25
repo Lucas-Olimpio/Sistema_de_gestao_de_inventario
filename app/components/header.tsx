@@ -1,7 +1,9 @@
 "use client";
 
-import { Bell, Search } from "lucide-react";
+import { Bell, LogOut, ChevronDown } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
+import { useState, useRef, useEffect } from "react";
 
 const pageTitles: Record<string, string> = {
   "/": "Dashboard",
@@ -9,10 +11,29 @@ const pageTitles: Record<string, string> = {
   "/produtos/novo": "Novo Produto",
   "/categorias": "Categorias",
   "/movimentacoes": "Movimentações",
+  "/usuarios": "Utilizadores",
 };
 
 export default function Header() {
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const userName = session?.user?.name || "Utilizador";
+  const userRole = (session?.user as any)?.role || "";
+  const userInitials = userName
+    .split(" ")
+    .map((n: string) => n[0])
+    .join("")
+    .substring(0, 2)
+    .toUpperCase();
+
+  const roleLabels: Record<string, string> = {
+    ADMIN: "Admin",
+    OPERADOR: "Operador",
+    VISUALIZADOR: "Visualizador",
+  };
 
   const getTitle = () => {
     if (pageTitles[pathname]) return pageTitles[pathname];
@@ -20,6 +41,17 @@ export default function Header() {
       return "Editar Produto";
     return "InvenPro";
   };
+
+  // Close menu on outside click
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
   return (
     <header
@@ -49,34 +81,6 @@ export default function Header() {
       </h2>
 
       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-        {/* Search */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            background: "var(--bg-input)",
-            borderRadius: "var(--radius-md)",
-            padding: "8px 14px",
-            border: "1px solid var(--border-color)",
-            minWidth: "240px",
-          }}
-        >
-          <Search size={16} color="var(--text-muted)" />
-          <input
-            type="text"
-            placeholder="Buscar..."
-            style={{
-              border: "none",
-              background: "transparent",
-              color: "var(--text-primary)",
-              fontSize: "13px",
-              outline: "none",
-              width: "100%",
-            }}
-          />
-        </div>
-
         {/* Notifications */}
         <button
           style={{
@@ -115,24 +119,136 @@ export default function Header() {
           />
         </button>
 
-        {/* Avatar */}
-        <div
-          style={{
-            width: 38,
-            height: 38,
-            borderRadius: "var(--radius-md)",
-            background:
-              "linear-gradient(135deg, var(--accent-primary), #a855f7)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "14px",
-            fontWeight: 700,
-            color: "white",
-            cursor: "pointer",
-          }}
-        >
-          LO
+        {/* User Avatar & Dropdown */}
+        <div ref={menuRef} style={{ position: "relative" }}>
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "4px 8px 4px 4px",
+              borderRadius: "var(--radius-md)",
+              border: "1px solid var(--border-color)",
+              background: "var(--bg-input)",
+              cursor: "pointer",
+              color: "var(--text-primary)",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = "var(--border-hover)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = "var(--border-color)";
+            }}
+          >
+            <div
+              style={{
+                width: 30,
+                height: 30,
+                borderRadius: "var(--radius-sm)",
+                background:
+                  "linear-gradient(135deg, var(--accent-primary), #a855f7)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "12px",
+                fontWeight: 700,
+                color: "white",
+              }}
+            >
+              {userInitials}
+            </div>
+            <ChevronDown size={14} color="var(--text-muted)" />
+          </button>
+
+          {menuOpen && (
+            <div
+              style={{
+                position: "absolute",
+                right: 0,
+                top: "calc(100% + 8px)",
+                minWidth: "200px",
+                background: "var(--bg-card)",
+                border: "1px solid var(--border-color)",
+                borderRadius: "var(--radius-md)",
+                boxShadow: "var(--shadow-lg)",
+                padding: "8px",
+                zIndex: 50,
+              }}
+            >
+              {/* User info */}
+              <div
+                style={{
+                  padding: "8px 10px",
+                  borderBottom: "1px solid var(--border-color)",
+                  marginBottom: "4px",
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: "var(--text-primary)",
+                  }}
+                >
+                  {userName}
+                </p>
+                <p
+                  style={{
+                    fontSize: "11px",
+                    color: "var(--text-muted)",
+                    marginTop: "2px",
+                  }}
+                >
+                  {session?.user?.email}
+                </p>
+                <span
+                  style={{
+                    display: "inline-block",
+                    marginTop: "6px",
+                    padding: "2px 8px",
+                    borderRadius: "var(--radius-sm)",
+                    background: "var(--accent-primary-glow)",
+                    color: "var(--accent-primary)",
+                    fontSize: "10px",
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  {roleLabels[userRole] || userRole}
+                </span>
+              </div>
+
+              {/* Logout */}
+              <button
+                onClick={() => signOut({ callbackUrl: "/login" })}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  width: "100%",
+                  padding: "8px 10px",
+                  borderRadius: "var(--radius-sm)",
+                  border: "none",
+                  background: "transparent",
+                  color: "var(--accent-danger)",
+                  fontSize: "13px",
+                  cursor: "pointer",
+                  textAlign: "left",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "var(--accent-danger-bg)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "transparent";
+                }}
+              >
+                <LogOut size={14} />
+                Sair
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>

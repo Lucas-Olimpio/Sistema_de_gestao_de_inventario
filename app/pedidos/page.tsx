@@ -21,17 +21,9 @@ export default function PedidosPage() {
   const [error, setError] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
-  // Hooks
   const { data: orders = [], isLoading: loadingOrders } =
     useSalesOrders(statusFilter);
   const { data: customers = [] } = useCustomers();
-  // For dropdowns, we might want all products or allow search.
-  // For now, let's fetch a reasonably large limit or implement searching in the dropdown later.
-  // The original code fetched /api/products without pagination?
-  // Checking original: fetch("/api/products") -> likely filtered by whatever default or all.
-  // Our useProducts defaults to limit 10. We might need a "fetchAll" or higher limit.
-  // Let's assume for now 100 is enough for dropdowns or we need a specific 'list' endpoint.
-  // For now I'll use a large limit.
   const { data: productsData } = useProducts({ limit: 100 });
   const products = productsData?.data || [];
 

@@ -1,29 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useActionState, useEffect } from "react";
 import Link from "next/link";
 import { Plus, Search, Edit2, Trash2, Filter, Package } from "lucide-react";
 import { formatCurrency, formatDateShort } from "@/lib/utils";
 import PageHeader from "../components/page-header";
 import DataTable, { Column } from "../components/data-table";
 import ConfirmModal from "../components/confirm-modal";
+import Modal from "../components/modal";
+import ProductForm from "./components/product-form";
 import { Product } from "@/lib/types";
-import { deleteProduct } from "@/app/produtos/actions";
+import { createProduct, deleteProduct, State } from "@/app/produtos/actions";
 import { useProducts } from "@/app/hooks/use-products";
 import { useCategories } from "@/app/hooks/use-categories";
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import ExportButton from "../components/export-button";
 
 export default function ProdutosPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Pagination state
   const [page, setPage] = useState(1);
   const limit = 10;
 
-  // Hooks
   const { data: productsData, isLoading } = useProducts({
     page,
     limit,
@@ -35,9 +38,24 @@ export default function ProdutosPage() {
 
   const products = productsData?.data || [];
   const meta = productsData?.meta;
-  // Total items/pages comes from meta, default to 0/1 if loading/undefined
+
   const totalItems = meta?.total || 0;
   const totalPages = meta?.totalPages || 1;
+
+  const initialState: State = { message: null, errors: {} };
+  const [state, formAction, isPending] = useActionState(
+    createProduct,
+    initialState,
+  );
+
+  useEffect(() => {
+    if (state.success) {
+      setIsModalOpen(false);
+      toast.success(state.message);
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    } else if (state.message && isModalOpen) {
+    }
+  }, [state, isModalOpen, queryClient]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -46,10 +64,11 @@ export default function ProdutosPage() {
 
     if (result.success) {
       setDeleteId(null);
-      // Invalidate query to refetch
+
       queryClient.invalidateQueries({ queryKey: ["products"] });
+      toast.success("Produto excluído com sucesso!");
     } else {
-      alert("Erro ao excluir produto: " + result.message);
+      toast.error("Erro ao excluir produto: " + result.message);
     }
   };
 
@@ -295,8 +314,10 @@ export default function ProdutosPage() {
               </div>
             </div>
 
-            <Link
-              href="/produtos/novo"
+            <ExportButton entity="products" label="Exportar" />
+
+            <button
+              onClick={() => setIsModalOpen(true)}
               className="accent-button"
               style={{
                 display: "flex",
@@ -316,7 +337,7 @@ export default function ProdutosPage() {
             >
               <Plus size={18} />
               Novo Produto
-            </Link>
+            </button>
           </div>
         }
       />
@@ -380,6 +401,22 @@ export default function ProdutosPage() {
         isDestructive
         confirmText="Excluir"
       />
+
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Novo Produto"
+        maxWidth="600px"
+      >
+        <ProductForm
+          categories={categories}
+          action={formAction}
+          state={state}
+          isPending={isPending}
+          submitLabel="Salvar Produto"
+          onCancel={() => setIsModalOpen(false)}
+        />
+      </Modal>
     </div>
   );
 }

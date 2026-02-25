@@ -22,7 +22,7 @@ interface ProductFormProps {
   state: State;
   isPending: boolean;
   submitLabel: string;
-  onCancel: () => void; // Can be a function or we can use a Link if generic
+  onCancel: () => void;
 }
 
 export default function ProductForm({
@@ -34,9 +34,6 @@ export default function ProductForm({
   submitLabel,
   onCancel,
 }: ProductFormProps) {
-  // We need local state to handle controlled inputs if we want to reset or manipulate them,
-  // but for a simple server action form, we can rely on defaultValues if we don't need instant feedback.
-  // However, the original code used controlled inputs. Let's stick to that for consistency and potential validtion.
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -48,19 +45,17 @@ export default function ProductForm({
   });
 
   useEffect(() => {
-    useEffect(() => {
-      if (initialData) {
-        setForm({
-          name: initialData.name,
-          description: initialData.description || "",
-          sku: initialData.sku,
-          price: (Number(initialData.price) / 100).toFixed(2),
-          quantity: initialData.quantity.toString(),
-          minStock: initialData.minStock.toString(),
-          categoryId: initialData.categoryId,
-        });
-      }
-    }, [initialData]);
+    if (initialData) {
+      setForm({
+        name: initialData.name,
+        description: initialData.description || "",
+        sku: initialData.sku,
+        price: (Number(initialData.price) / 100).toFixed(2),
+        quantity: initialData.quantity.toString(),
+        minStock: initialData.minStock.toString(),
+        categoryId: initialData.categoryId,
+      });
+    }
   }, [initialData]);
 
   useEffect(() => {
@@ -71,7 +66,6 @@ export default function ProductForm({
         toast.success(state.message);
       }
     } else if (state?.errors) {
-      // Show first error found
       const firstError = Object.values(state.errors).flat()[0];
       toast.error(firstError || "Por favor, verifique os erros no formulário.");
     }
@@ -117,7 +111,6 @@ export default function ProductForm({
           name="name"
           required
           placeholder="Ex: Notebook Dell Inspiron"
-          defaultValue={form.name} // changed to defaultValue to avoid controlled input issues with server actions if not strictly needed, but kept controlled for updates if valid. Actually sticking to controlled as per previous state.
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
           style={inputStyle}

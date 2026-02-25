@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import {
   LayoutDashboard,
   Package,
@@ -16,10 +17,20 @@ import {
   UserCheck,
   ShoppingBag,
   HandCoins,
+  Settings,
+  LogOut,
+  Shield,
 } from "lucide-react";
 import { useSidebar } from "./sidebar-context";
 
-const navItems = [
+type NavItem = {
+  href: string;
+  label: string;
+  icon: any;
+  adminOnly?: boolean;
+};
+
+const navItems: NavItem[] = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/produtos", label: "Produtos", icon: Package },
   { href: "/categorias", label: "Categorias", icon: Tags },
@@ -33,11 +44,27 @@ const navItems = [
   { href: "/clientes", label: "Clientes", icon: UserCheck },
   { href: "/pedidos", label: "Pedidos de Venda", icon: ShoppingBag },
   { href: "/contas-a-receber", label: "Contas a Receber", icon: HandCoins },
+  { href: "---sistema", label: "SISTEMA", icon: null },
+  { href: "/usuarios", label: "Utilizadores", icon: Shield, adminOnly: true },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
   const { collapsed, toggle } = useSidebar();
+  const { data: session } = useSession();
+
+  const userRole = (session?.user as any)?.role || "VISUALIZADOR";
+  const userName = session?.user?.name || "Utilizador";
+  const userInitials = userName
+    .split(" ")
+    .map((n: string) => n[0])
+    .join("")
+    .substring(0, 2)
+    .toUpperCase();
+
+  const filteredItems = navItems.filter(
+    (item) => !item.adminOnly || userRole === "ADMIN",
+  );
 
   return (
     <aside
@@ -118,7 +145,7 @@ export default function Sidebar() {
           gap: "4px",
         }}
       >
-        {navItems.map((item) => {
+        {filteredItems.map((item) => {
           // Render section separator
           if (item.href.startsWith("---")) {
             if (collapsed) {
@@ -197,13 +224,106 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Collapse toggle */}
+      {/* User info + collapse toggle */}
       <div
         style={{
           padding: "12px 8px",
           borderTop: "1px solid var(--border-color)",
+          display: "flex",
+          flexDirection: "column",
+          gap: "8px",
         }}
       >
+        {/* User info */}
+        {session?.user && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              padding: collapsed ? "8px 0" : "8px 12px",
+              justifyContent: collapsed ? "center" : "flex-start",
+            }}
+          >
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: "var(--radius-md)",
+                background:
+                  "linear-gradient(135deg, var(--accent-primary), #a855f7)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "12px",
+                fontWeight: 700,
+                color: "white",
+                flexShrink: 0,
+              }}
+            >
+              {userInitials}
+            </div>
+            {!collapsed && (
+              <div style={{ overflow: "hidden", flex: 1, minWidth: 0 }}>
+                <p
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: "var(--text-primary)",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {userName}
+                </p>
+                <p
+                  style={{
+                    fontSize: "11px",
+                    color: "var(--text-muted)",
+                  }}
+                >
+                  {userRole === "ADMIN"
+                    ? "Admin"
+                    : userRole === "OPERADOR"
+                      ? "Operador"
+                      : "Visualizador"}
+                </p>
+              </div>
+            )}
+            {!collapsed && (
+              <button
+                onClick={() => signOut({ callbackUrl: "/login" })}
+                title="Sair"
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: "var(--radius-sm)",
+                  border: "none",
+                  background: "transparent",
+                  color: "var(--text-muted)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  flexShrink: 0,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = "var(--accent-danger)";
+                  e.currentTarget.style.background = "var(--accent-danger-bg)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = "var(--text-muted)";
+                  e.currentTarget.style.background = "transparent";
+                }}
+              >
+                <LogOut size={14} />
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Collapse toggle */}
         <button
           onClick={toggle}
           style={{

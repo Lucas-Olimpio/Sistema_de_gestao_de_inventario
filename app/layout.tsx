@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Sidebar from "./components/sidebar";
-import Header from "./components/header";
-import { SidebarProvider } from "./components/sidebar-context";
-import LayoutShell from "./components/layout-shell";
+import AuthLayout from "./components/auth-layout";
 import Providers from "./providers";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -26,17 +23,7 @@ export default function RootLayout({
     <html lang="pt-BR">
       <body className={inter.variable}>
         <Providers>
-          <SidebarProvider>
-            <div style={{ display: "flex", minHeight: "100vh" }}>
-              <Sidebar />
-              <LayoutShell>
-                <Header />
-                <main style={{ flex: 1, padding: "24px 28px" }}>
-                  {children}
-                </main>
-              </LayoutShell>
-            </div>
-          </SidebarProvider>
+          <AuthLayout>{children}</AuthLayout>
           <Toaster />
         </Providers>
       </body>

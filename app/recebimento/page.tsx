@@ -10,7 +10,7 @@ import ReceiptResult from "./components/receipt-result";
 import { PurchaseOrder } from "@/lib/types";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import StatusBadge from "@/app/components/status-badge";
-import { createGoodsReceiptAction } from "@/app/recebimento/actions";
+
 import { usePurchaseOrders } from "@/app/hooks/use-purchase-orders";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -25,7 +25,6 @@ export default function RecebimentoPage() {
   const [result, setResult] = useState<any | null>(null);
   const [error, setError] = useState("");
 
-  // Fetch orders with two statuses
   const { data: transitOrders = [], isLoading: loadingTransit } =
     usePurchaseOrders("EM_TRANSITO");
   const { data: approvedOrders = [], isLoading: loadingApproved } =
@@ -37,7 +36,7 @@ export default function RecebimentoPage() {
   const openReceive = (order: PurchaseOrder) => {
     setSelectedOrder(order);
     setError("");
-    // Blind conference: we show the items but NOT the ordered quantity
+
     setReceiveItems(
       order.items.map((item) => ({
         productId: item.productId,
@@ -49,26 +48,29 @@ export default function RecebimentoPage() {
     setReceiveModalOpen(true);
   };
 
-  const handleConfirmReceive = async (items: any[]) => {
+  const handleConfirmReceive = async (formData: any) => {
     if (!selectedOrder) return;
     setError("");
 
     try {
-      // Validate with Zod schema before sending
-      const payload = {
-        purchaseOrderId: selectedOrder.id,
-        items: items.map((i) => ({
-          productId: i.productId,
-          receivedQty: parseInt(i.receivedQty) || 0,
-        })),
-      };
+      if (formData instanceof FormData) {
+        formData.append("purchaseOrderId", selectedOrder.id);
+      } else {
+        console.error("Expected FormData");
+        return;
+      }
 
-      const result = await createGoodsReceiptAction(payload);
+      const response = await fetch("/api/recebimento", {
+        method: "POST",
+        body: formData,
+      });
 
-      if (result.success) {
+      const result = await response.json();
+
+      if (response.ok && result.success) {
         setResult({
           receipt: {
-            id: "new",
+            id: result.data.id || "new",
             purchaseOrderId: selectedOrder.id,
             createdAt: new Date(),
           },
@@ -76,12 +78,12 @@ export default function RecebimentoPage() {
         });
         setReceiveModalOpen(false);
         setResultModalOpen(true);
-        // Invalidate both lists
         queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
-        // Also invalidate products since stock changed
         queryClient.invalidateQueries({ queryKey: ["products"] });
       } else {
-        setError(result.message || "Erro ao registrar recebimento");
+        setError(
+          result.error || result.message || "Erro ao registrar recebimento",
+        );
       }
     } catch (e: any) {
       setError(e.message || "Erro inesperado");

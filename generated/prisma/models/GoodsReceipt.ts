@@ -28,6 +28,7 @@ export type GoodsReceiptMinAggregateOutputType = {
   id: string | null
   purchaseOrderId: string | null
   notes: string | null
+  nfePath: string | null
   createdAt: Date | null
 }
 
@@ -35,6 +36,7 @@ export type GoodsReceiptMaxAggregateOutputType = {
   id: string | null
   purchaseOrderId: string | null
   notes: string | null
+  nfePath: string | null
   createdAt: Date | null
 }
 
@@ -42,6 +44,7 @@ export type GoodsReceiptCountAggregateOutputType = {
   id: number
   purchaseOrderId: number
   notes: number
+  nfePath: number
   createdAt: number
   _all: number
 }
@@ -51,6 +54,7 @@ export type GoodsReceiptMinAggregateInputType = {
   id?: true
   purchaseOrderId?: true
   notes?: true
+  nfePath?: true
   createdAt?: true
 }
 
@@ -58,6 +62,7 @@ export type GoodsReceiptMaxAggregateInputType = {
   id?: true
   purchaseOrderId?: true
   notes?: true
+  nfePath?: true
   createdAt?: true
 }
 
@@ -65,6 +70,7 @@ export type GoodsReceiptCountAggregateInputType = {
   id?: true
   purchaseOrderId?: true
   notes?: true
+  nfePath?: true
   createdAt?: true
   _all?: true
 }
@@ -145,6 +151,7 @@ export type GoodsReceiptGroupByOutputType = {
   id: string
   purchaseOrderId: string
   notes: string | null
+  nfePath: string | null
   createdAt: Date
   _count: GoodsReceiptCountAggregateOutputType | null
   _min: GoodsReceiptMinAggregateOutputType | null
@@ -173,6 +180,7 @@ export type GoodsReceiptWhereInput = {
   id?: Prisma.StringFilter<"GoodsReceipt"> | string
   purchaseOrderId?: Prisma.StringFilter<"GoodsReceipt"> | string
   notes?: Prisma.StringNullableFilter<"GoodsReceipt"> | string | null
+  nfePath?: Prisma.StringNullableFilter<"GoodsReceipt"> | string | null
   createdAt?: Prisma.DateTimeFilter<"GoodsReceipt"> | Date | string
   purchaseOrder?: Prisma.XOR<Prisma.PurchaseOrderScalarRelationFilter, Prisma.PurchaseOrderWhereInput>
   items?: Prisma.GoodsReceiptItemListRelationFilter
@@ -182,6 +190,7 @@ export type GoodsReceiptOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   purchaseOrderId?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
+  nfePath?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   purchaseOrder?: Prisma.PurchaseOrderOrderByWithRelationInput
   items?: Prisma.GoodsReceiptItemOrderByRelationAggregateInput
@@ -194,6 +203,7 @@ export type GoodsReceiptWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.GoodsReceiptWhereInput | Prisma.GoodsReceiptWhereInput[]
   purchaseOrderId?: Prisma.StringFilter<"GoodsReceipt"> | string
   notes?: Prisma.StringNullableFilter<"GoodsReceipt"> | string | null
+  nfePath?: Prisma.StringNullableFilter<"GoodsReceipt"> | string | null
   createdAt?: Prisma.DateTimeFilter<"GoodsReceipt"> | Date | string
   purchaseOrder?: Prisma.XOR<Prisma.PurchaseOrderScalarRelationFilter, Prisma.PurchaseOrderWhereInput>
   items?: Prisma.GoodsReceiptItemListRelationFilter
@@ -203,6 +213,7 @@ export type GoodsReceiptOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   purchaseOrderId?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
+  nfePath?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.GoodsReceiptCountOrderByAggregateInput
   _max?: Prisma.GoodsReceiptMaxOrderByAggregateInput
@@ -216,12 +227,14 @@ export type GoodsReceiptScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"GoodsReceipt"> | string
   purchaseOrderId?: Prisma.StringWithAggregatesFilter<"GoodsReceipt"> | string
   notes?: Prisma.StringNullableWithAggregatesFilter<"GoodsReceipt"> | string | null
+  nfePath?: Prisma.StringNullableWithAggregatesFilter<"GoodsReceipt"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"GoodsReceipt"> | Date | string
 }
 
 export type GoodsReceiptCreateInput = {
   id?: string
   notes?: string | null
+  nfePath?: string | null
   createdAt?: Date | string
   purchaseOrder: Prisma.PurchaseOrderCreateNestedOneWithoutGoodsReceiptsInput
   items?: Prisma.GoodsReceiptItemCreateNestedManyWithoutGoodsReceiptInput
@@ -231,6 +244,7 @@ export type GoodsReceiptUncheckedCreateInput = {
   id?: string
   purchaseOrderId: string
   notes?: string | null
+  nfePath?: string | null
   createdAt?: Date | string
   items?: Prisma.GoodsReceiptItemUncheckedCreateNestedManyWithoutGoodsReceiptInput
 }
@@ -238,6 +252,7 @@ export type GoodsReceiptUncheckedCreateInput = {
 export type GoodsReceiptUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nfePath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   purchaseOrder?: Prisma.PurchaseOrderUpdateOneRequiredWithoutGoodsReceiptsNestedInput
   items?: Prisma.GoodsReceiptItemUpdateManyWithoutGoodsReceiptNestedInput
@@ -247,6 +262,7 @@ export type GoodsReceiptUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   purchaseOrderId?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nfePath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.GoodsReceiptItemUncheckedUpdateManyWithoutGoodsReceiptNestedInput
 }
@@ -255,12 +271,14 @@ export type GoodsReceiptCreateManyInput = {
   id?: string
   purchaseOrderId: string
   notes?: string | null
+  nfePath?: string | null
   createdAt?: Date | string
 }
 
 export type GoodsReceiptUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nfePath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -268,6 +286,7 @@ export type GoodsReceiptUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   purchaseOrderId?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nfePath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -285,6 +304,7 @@ export type GoodsReceiptCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   purchaseOrderId?: Prisma.SortOrder
   notes?: Prisma.SortOrder
+  nfePath?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -292,6 +312,7 @@ export type GoodsReceiptMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   purchaseOrderId?: Prisma.SortOrder
   notes?: Prisma.SortOrder
+  nfePath?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -299,6 +320,7 @@ export type GoodsReceiptMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   purchaseOrderId?: Prisma.SortOrder
   notes?: Prisma.SortOrder
+  nfePath?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -366,6 +388,7 @@ export type GoodsReceiptUpdateOneRequiredWithoutItemsNestedInput = {
 export type GoodsReceiptCreateWithoutPurchaseOrderInput = {
   id?: string
   notes?: string | null
+  nfePath?: string | null
   createdAt?: Date | string
   items?: Prisma.GoodsReceiptItemCreateNestedManyWithoutGoodsReceiptInput
 }
@@ -373,6 +396,7 @@ export type GoodsReceiptCreateWithoutPurchaseOrderInput = {
 export type GoodsReceiptUncheckedCreateWithoutPurchaseOrderInput = {
   id?: string
   notes?: string | null
+  nfePath?: string | null
   createdAt?: Date | string
   items?: Prisma.GoodsReceiptItemUncheckedCreateNestedManyWithoutGoodsReceiptInput
 }
@@ -409,12 +433,14 @@ export type GoodsReceiptScalarWhereInput = {
   id?: Prisma.StringFilter<"GoodsReceipt"> | string
   purchaseOrderId?: Prisma.StringFilter<"GoodsReceipt"> | string
   notes?: Prisma.StringNullableFilter<"GoodsReceipt"> | string | null
+  nfePath?: Prisma.StringNullableFilter<"GoodsReceipt"> | string | null
   createdAt?: Prisma.DateTimeFilter<"GoodsReceipt"> | Date | string
 }
 
 export type GoodsReceiptCreateWithoutItemsInput = {
   id?: string
   notes?: string | null
+  nfePath?: string | null
   createdAt?: Date | string
   purchaseOrder: Prisma.PurchaseOrderCreateNestedOneWithoutGoodsReceiptsInput
 }
@@ -423,6 +449,7 @@ export type GoodsReceiptUncheckedCreateWithoutItemsInput = {
   id?: string
   purchaseOrderId: string
   notes?: string | null
+  nfePath?: string | null
   createdAt?: Date | string
 }
 
@@ -445,6 +472,7 @@ export type GoodsReceiptUpdateToOneWithWhereWithoutItemsInput = {
 export type GoodsReceiptUpdateWithoutItemsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nfePath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   purchaseOrder?: Prisma.PurchaseOrderUpdateOneRequiredWithoutGoodsReceiptsNestedInput
 }
@@ -453,18 +481,21 @@ export type GoodsReceiptUncheckedUpdateWithoutItemsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   purchaseOrderId?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nfePath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type GoodsReceiptCreateManyPurchaseOrderInput = {
   id?: string
   notes?: string | null
+  nfePath?: string | null
   createdAt?: Date | string
 }
 
 export type GoodsReceiptUpdateWithoutPurchaseOrderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nfePath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.GoodsReceiptItemUpdateManyWithoutGoodsReceiptNestedInput
 }
@@ -472,6 +503,7 @@ export type GoodsReceiptUpdateWithoutPurchaseOrderInput = {
 export type GoodsReceiptUncheckedUpdateWithoutPurchaseOrderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nfePath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   items?: Prisma.GoodsReceiptItemUncheckedUpdateManyWithoutGoodsReceiptNestedInput
 }
@@ -479,6 +511,7 @@ export type GoodsReceiptUncheckedUpdateWithoutPurchaseOrderInput = {
 export type GoodsReceiptUncheckedUpdateManyWithoutPurchaseOrderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nfePath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -517,6 +550,7 @@ export type GoodsReceiptSelect<ExtArgs extends runtime.Types.Extensions.Internal
   id?: boolean
   purchaseOrderId?: boolean
   notes?: boolean
+  nfePath?: boolean
   createdAt?: boolean
   purchaseOrder?: boolean | Prisma.PurchaseOrderDefaultArgs<ExtArgs>
   items?: boolean | Prisma.GoodsReceipt$itemsArgs<ExtArgs>
@@ -527,6 +561,7 @@ export type GoodsReceiptSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   id?: boolean
   purchaseOrderId?: boolean
   notes?: boolean
+  nfePath?: boolean
   createdAt?: boolean
   purchaseOrder?: boolean | Prisma.PurchaseOrderDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["goodsReceipt"]>
@@ -535,6 +570,7 @@ export type GoodsReceiptSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   id?: boolean
   purchaseOrderId?: boolean
   notes?: boolean
+  nfePath?: boolean
   createdAt?: boolean
   purchaseOrder?: boolean | Prisma.PurchaseOrderDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["goodsReceipt"]>
@@ -543,10 +579,11 @@ export type GoodsReceiptSelectScalar = {
   id?: boolean
   purchaseOrderId?: boolean
   notes?: boolean
+  nfePath?: boolean
   createdAt?: boolean
 }
 
-export type GoodsReceiptOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "purchaseOrderId" | "notes" | "createdAt", ExtArgs["result"]["goodsReceipt"]>
+export type GoodsReceiptOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "purchaseOrderId" | "notes" | "nfePath" | "createdAt", ExtArgs["result"]["goodsReceipt"]>
 export type GoodsReceiptInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   purchaseOrder?: boolean | Prisma.PurchaseOrderDefaultArgs<ExtArgs>
   items?: boolean | Prisma.GoodsReceipt$itemsArgs<ExtArgs>
@@ -569,6 +606,7 @@ export type $GoodsReceiptPayload<ExtArgs extends runtime.Types.Extensions.Intern
     id: string
     purchaseOrderId: string
     notes: string | null
+    nfePath: string | null
     createdAt: Date
   }, ExtArgs["result"]["goodsReceipt"]>
   composites: {}
@@ -998,6 +1036,7 @@ export interface GoodsReceiptFieldRefs {
   readonly id: Prisma.FieldRef<"GoodsReceipt", 'String'>
   readonly purchaseOrderId: Prisma.FieldRef<"GoodsReceipt", 'String'>
   readonly notes: Prisma.FieldRef<"GoodsReceipt", 'String'>
+  readonly nfePath: Prisma.FieldRef<"GoodsReceipt", 'String'>
   readonly createdAt: Prisma.FieldRef<"GoodsReceipt", 'DateTime'>
 }
     

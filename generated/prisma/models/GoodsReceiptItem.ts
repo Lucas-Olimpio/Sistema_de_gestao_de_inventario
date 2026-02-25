@@ -447,10 +447,6 @@ export type GoodsReceiptItemUncheckedUpdateManyWithoutGoodsReceiptNestedInput = 
   deleteMany?: Prisma.GoodsReceiptItemScalarWhereInput | Prisma.GoodsReceiptItemScalarWhereInput[]
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type GoodsReceiptItemCreateWithoutProductInput = {
   id?: string
   receivedQty: number

@@ -51,6 +51,7 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
+  User: 'User',
   Category: 'Category',
   Product: 'Product',
   StockMovement: 'StockMovement',
@@ -66,6 +67,7 @@ export const ModelName = {
   AccountsReceivable: 'AccountsReceivable',
   Installment: 'Installment',
   OrderStatusHistory: 'OrderStatusHistory',
+  AuditLog: 'AuditLog',
   BankAccount: 'BankAccount',
   Transaction: 'Transaction'
 } as const
@@ -81,6 +83,20 @@ export const TransactionIsolationLevel = runtime.makeStrictEnum({
 } as const)
 
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
+
+
+export const UserScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  email: 'email',
+  password: 'password',
+  role: 'role',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
 export const CategoryScalarFieldEnum = {
@@ -170,6 +186,7 @@ export const GoodsReceiptScalarFieldEnum = {
   id: 'id',
   purchaseOrderId: 'purchaseOrderId',
   notes: 'notes',
+  nfePath: 'nfePath',
   createdAt: 'createdAt'
 } as const
 
@@ -279,6 +296,20 @@ export const OrderStatusHistoryScalarFieldEnum = {
 } as const
 
 export type OrderStatusHistoryScalarFieldEnum = (typeof OrderStatusHistoryScalarFieldEnum)[keyof typeof OrderStatusHistoryScalarFieldEnum]
+
+
+export const AuditLogScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  action: 'action',
+  entity: 'entity',
+  entityId: 'entityId',
+  oldData: 'oldData',
+  newData: 'newData',
+  createdAt: 'createdAt'
+} as const
+
+export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
 
 
 export const BankAccountScalarFieldEnum = {

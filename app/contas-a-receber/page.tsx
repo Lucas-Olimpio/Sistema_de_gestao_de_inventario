@@ -9,6 +9,7 @@ import AnimSection from "../components/anim-section";
 import DataTable, { Column } from "../components/data-table";
 import StatusBadge from "../components/status-badge";
 import { Receivable } from "@/lib/types";
+import ExportButton from "../components/export-button";
 
 export default function ContasAReceberPage() {
   const [receivables, setReceivables] = useState<Receivable[]>([]);
@@ -135,6 +136,7 @@ export default function ContasAReceberPage() {
         title="Contas a Receber"
         subtitle="Gerencie recebimentos de vendas"
         icon={HandCoins}
+        action={<ExportButton entity="receivables" label="Exportar" />}
       />
 
       <AnimSection delay={100}>

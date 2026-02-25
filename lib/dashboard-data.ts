@@ -5,7 +5,6 @@ export async function getDashboardData(
   from?: string,
   to?: string,
 ): Promise<DashboardData> {
-  // Date range filter
   const dateFilter =
     from && to
       ? {
@@ -16,11 +15,9 @@ export async function getDashboardData(
         }
       : undefined;
 
-  // Total products (snapshot - not filtered by date)
   const totalProducts = await prisma.product.count();
 
-  // Total stock value & quantity (snapshot) - Optimized with raw query
-  // We use queryRaw because Prisma aggregate doesn't support multiplication (price * quantity)
+  // Raw SQL: Prisma aggregate doesn't support multiplication (price * quantity)
   const result = await prisma.$queryRaw<
     Array<{ totalVal: unknown; totalQty: unknown }>
   >`
@@ -30,7 +27,6 @@ export async function getDashboardData(
   const totalValue = Number(result[0]?.totalVal || 0);
   const totalQuantity = Number(result[0]?.totalQty || 0);
 
-  // Low stock items (snapshot)
   const allProducts = await prisma.product.findMany({
     select: {
       id: true,
@@ -44,10 +40,8 @@ export async function getDashboardData(
   });
   const lowStock = allProducts.filter((p) => p.quantity <= (p.minStock || 0));
 
-  // Total categories (snapshot)
   const totalCategories = await prisma.category.count();
 
-  // Recent movements (filtered by period)
   const recentMovementsRaw = await prisma.stockMovement.findMany({
     where: dateFilter,
     include: { product: { select: { name: true, sku: true } } },
@@ -64,7 +58,6 @@ export async function getDashboardData(
     product: m.product,
   }));
 
-  // Movement stats (filtered by period)
   const movementsInData = await prisma.stockMovement.aggregate({
     where: { ...dateFilter, type: "IN" },
     _sum: { quantity: true },
@@ -77,14 +70,12 @@ export async function getDashboardData(
   });
   const totalOut = movementsOutData._sum.quantity || 0;
 
-  // Movements for chart (still need to fetch to group by day in JS)
   const periodMovements = await prisma.stockMovement.findMany({
     where: dateFilter,
     select: { type: true, quantity: true, createdAt: true },
     orderBy: { createdAt: "asc" },
   });
 
-  // Movements grouped by day (for bar chart)
   const movementsByDay: Record<
     string,
     { date: string; in: number; out: number }
@@ -104,7 +95,6 @@ export async function getDashboardData(
     a.date.localeCompare(b.date),
   );
 
-  // Category distribution (snapshot)
   const categoryDistribution = await prisma.category.findMany({
     include: {
       _count: { select: { products: true } },
@@ -121,7 +111,6 @@ export async function getDashboardData(
     ),
   }));
 
-  // Financial KPIs (filtered by period)
   const payablesGrouped = await prisma.accountsPayable.groupBy({
     by: ["status"],
     where: dateFilter,
@@ -150,7 +139,6 @@ export async function getDashboardData(
     .filter((r) => r.status === "RECEBIDO")
     .reduce((acc, curr) => acc + Number(curr._sum.amount || 0), 0);
 
-  // Orders by status (filtered by period)
   const purchaseOrdersGrouped = await prisma.purchaseOrder.groupBy({
     by: ["status"],
     where: dateFilter,

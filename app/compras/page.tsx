@@ -35,9 +35,22 @@ export default function ComprasPage() {
     fetch("/api/suppliers")
       .then((r) => r.json())
       .then(setSuppliers);
-    fetch("/api/products")
+    fetch("/api/products?limit=100")
       .then((r) => r.json())
-      .then(setProducts);
+      .then((data) => {
+        // Handle paginated response format
+        if (data.data && Array.isArray(data.data)) {
+          setProducts(data.data);
+        } else if (Array.isArray(data)) {
+          setProducts(data);
+        } else {
+          setProducts([]);
+        }
+      })
+      .catch((err) => {
+        console.error("Error fetching products:", err);
+        setProducts([]);
+      });
   }, []);
 
   useEffect(() => {

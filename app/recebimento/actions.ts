@@ -14,8 +14,6 @@ export type State = {
   success?: boolean;
 };
 
-// --- Goods Receipt (Recebimento) ---
-
 export async function createGoodsReceipt(
   prevState: State,
   formData: FormData,
@@ -82,9 +80,6 @@ export async function createGoodsReceiptAction(
         : true;
 
       if (ordered) {
-        // Use Prisma.Decimal methods for precision
-        // ordered.unitPrice is ALREADY a Decimal (from database)
-        // item.receivedQty is a number (int)
         const lineTotal = ordered.unitPrice.mul(item.receivedQty);
         runningTotal = runningTotal.add(lineTotal);
       }
@@ -106,7 +101,6 @@ export async function createGoodsReceiptAction(
     }
 
     await prisma.$transaction(async (tx) => {
-      // 1. Create Goods Receipt
       await tx.goodsReceipt.create({
         data: {
           purchaseOrderId,
@@ -115,21 +109,17 @@ export async function createGoodsReceiptAction(
         },
       });
 
-      // 3. Update PO Items receivedQty (Do this before checking status)
+      // Update PO Items receivedQty
       for (const item of items) {
         const poItem = orderedMap.get(item.productId);
         if (poItem) {
           await tx.purchaseOrderItem.update({
             where: { id: poItem.id },
-            data: { receivedQty: item.receivedQty }, // receivedQty is Int, safe.
+            data: { receivedQty: item.receivedQty },
           });
         }
       }
 
-      // Re-fetch PO to check if fully received
-      // We need to fetch items again to see the updated receivedQty in DB?
-      // OR we can just update our local knowledge.
-      // Fetching is safer validation.
       const updatedPO = await tx.purchaseOrder.findUnique({
         where: { id: purchaseOrderId },
         include: { items: true },
@@ -139,37 +129,27 @@ export async function createGoodsReceiptAction(
         (item) => item.receivedQty >= item.quantity,
       );
 
-      // 2. Update PO Status
       await tx.purchaseOrder.update({
         where: { id: purchaseOrderId },
         data: { status: isFullyReceived ? "RECEBIDA" : "EM_TRANSITO" },
       });
 
-      // 4. Update Stock & Create Movements
+      // Update stock atomically via raw SQL (weighted average cost)
       for (const update of stockUpdates) {
-        const product = await tx.product.findUnique({
-          where: { id: update.productId },
-        });
+        const unitPriceNum = Number(update.unitPrice);
+        const qty = update.receivedQty;
 
-        if (product) {
-          const currentTotalValue =
-            Number(product.quantity) * Number(product.costPrice);
-          const newItemsValue = update.receivedQty * Number(update.unitPrice);
-          const newTotalQty = Number(product.quantity) + update.receivedQty;
-
-          const averageCost =
-            newTotalQty > 0
-              ? (currentTotalValue + newItemsValue) / newTotalQty
-              : Number(update.unitPrice);
-
-          await tx.product.update({
-            where: { id: update.productId },
-            data: {
-              quantity: { increment: update.receivedQty },
-              costPrice: new Prisma.Decimal(averageCost),
-            },
-          });
-        }
+        await tx.$executeRaw`
+          UPDATE "Product" SET
+            "quantity" = "quantity" + ${qty},
+            "costPrice" = CASE
+              WHEN "quantity" + ${qty} > 0
+              THEN ("quantity" * "costPrice" + ${qty} * ${unitPriceNum}) / ("quantity" + ${qty})
+              ELSE ${unitPriceNum}
+            END,
+            "updatedAt" = ${new Date().toISOString()}
+          WHERE "id" = ${update.productId}
+        `;
 
         await tx.stockMovement.create({
           data: {
@@ -181,11 +161,10 @@ export async function createGoodsReceiptAction(
         });
       }
 
-      // 5. Create Payable
       await tx.accountsPayable.create({
         data: {
           purchaseOrderId,
-          amount: runningTotal, // Pass Decimal directly
+          amount: runningTotal,
         },
       });
     });

@@ -1,0 +1,69 @@
+﻿ D app/components/dashboard-skeleton.tsx
+ M app/components/header.tsx
+ M app/components/sidebar.tsx
+ M app/compras/page.tsx
+ M app/contas-a-pagar/page.tsx
+ M app/contas-a-receber/page.tsx
+ M app/layout.tsx
+ M app/movimentacoes/page.tsx
+ M app/pedidos/actions.ts
+ M app/pedidos/page.tsx
+ M app/produtos/actions.ts
+ M app/produtos/components/product-form.tsx
+ D app/produtos/novo/page.tsx
+ M app/produtos/page.tsx
+ M app/providers.tsx
+ M app/recebimento/actions.ts
+ M app/recebimento/components/receive-form.tsx
+ M app/recebimento/page.tsx
+ M generated/prisma/browser.ts
+ M generated/prisma/client.ts
+ M generated/prisma/commonInputTypes.ts
+ M generated/prisma/enums.ts
+ M generated/prisma/internal/class.ts
+ M generated/prisma/internal/prismaNamespace.ts
+ M generated/prisma/internal/prismaNamespaceBrowser.ts
+ M generated/prisma/models.ts
+ M generated/prisma/models/AccountsReceivable.ts
+ M generated/prisma/models/Category.ts
+ M generated/prisma/models/GoodsReceipt.ts
+ M generated/prisma/models/GoodsReceiptItem.ts
+ M generated/prisma/models/SalesOrder.ts
+ M lib/dashboard-data.ts
+ M lib/prisma.ts
+ D package-lock.json
+ M package.json
+ M pnpm-lock.yaml
+ M prisma/dev.db
+ M prisma/schema.prisma
+ M prisma/seed.ts
+?? __tests__/
+?? app/api/auth/
+?? app/api/export/
+?? app/api/recebimento/
+?? app/api/users/
+?? app/components/auth-layout.tsx
+?? app/components/error-display.tsx
+?? app/components/export-button.tsx
+?? app/compras/error.tsx
+?? app/contas-a-pagar/error.tsx
+?? app/contas-a-receber/error.tsx
+?? app/error.tsx
+?? app/login/
+?? app/pedidos/error.tsx
+?? app/produtos/error.tsx
+?? app/recebimento/error.tsx
+?? app/usuarios/
+?? generated/prisma/models/AuditLog.ts
+?? generated/prisma/models/User.ts
+?? git_status.txt
+?? lib/audit.ts
+?? lib/auth-utils.ts
+?? lib/auth.ts
+?? middleware.ts
+?? prisma/migrations/20260219084837_add_nfe_path/
+?? prisma/migrations/20260225181705_add_audit_log/
+?? prisma/migrations/20260225191253_add_user_auth/
+?? status.txt
+?? types/
+?? vitest.config.ts

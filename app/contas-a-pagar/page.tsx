@@ -9,6 +9,7 @@ import AnimSection from "../components/anim-section";
 import DataTable, { Column } from "../components/data-table";
 import StatusBadge from "../components/status-badge";
 import { Payable } from "@/lib/types";
+import ExportButton from "../components/export-button";
 
 export default function ContasAPagarPage() {
   const [payables, setPayables] = useState<Payable[]>([]);
@@ -135,6 +136,7 @@ export default function ContasAPagarPage() {
         title="Contas a Pagar"
         subtitle="Gerencie pagamentos a fornecedores"
         icon={Wallet}
+        action={<ExportButton entity="payables" label="Exportar" />}
       />
 
       <AnimSection delay={100}>

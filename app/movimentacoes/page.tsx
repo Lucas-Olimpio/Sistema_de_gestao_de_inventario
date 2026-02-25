@@ -42,7 +42,7 @@ export default function MovimentacoesPage() {
     fetchMovements();
     fetch("/api/products")
       .then((r) => r.json())
-      .then(setProducts);
+      .then((data) => setProducts(data.data || []));
   }, []);
 
   const handleSubmit = async (form: any) => {
@@ -58,7 +58,7 @@ export default function MovimentacoesPage() {
       // Refresh products to get updated quantities
       fetch("/api/products")
         .then((r) => r.json())
-        .then(setProducts);
+        .then((data) => setProducts(data.data || []));
     } else {
       const data = await res.json();
       setError(data.error || "Erro ao criar movimentação");

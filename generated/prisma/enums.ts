@@ -9,6 +9,15 @@
 * 🟢 You can import this file directly.
 */
 
+export const Role = {
+  ADMIN: 'ADMIN',
+  OPERADOR: 'OPERADOR',
+  VISUALIZADOR: 'VISUALIZADOR'
+} as const
+
+export type Role = (typeof Role)[keyof typeof Role]
+
+
 export const PaymentMethod = {
   MONEY: 'MONEY',
   PIX: 'PIX',

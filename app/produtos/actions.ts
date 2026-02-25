@@ -17,6 +17,7 @@ export type State = {
     categoryId?: string[];
   };
   message?: string | null;
+  success?: boolean;
 };
 
 export async function createProduct(prevState: State, formData: FormData) {
@@ -69,7 +70,10 @@ export async function createProduct(prevState: State, formData: FormData) {
   }
 
   revalidatePath("/produtos");
-  redirect("/produtos");
+  return {
+    success: true,
+    message: "Produto criado com sucesso!",
+  };
 }
 
 export async function updateProduct(
@@ -98,34 +102,57 @@ export async function updateProduct(
     validatedFields.data;
 
   try {
-    const existingProduct = await prisma.product.findFirst({
-      where: {
-        sku,
-        NOT: {
-          id: id,
+    await prisma.$transaction(async (tx) => {
+      // Check SKU uniqueness atomically within the transaction
+      const existingProduct = await tx.product.findFirst({
+        where: {
+          sku,
+          NOT: { id },
         },
-      },
-    });
+      });
 
-    if (existingProduct) {
-      return {
-        message: "SKU já existe em outro produto.",
-      };
+      if (existingProduct) {
+        throw new Error("SKU_DUPLICATE");
+      }
+
+      // Get current product to detect quantity changes
+      const current = await tx.product.findUnique({ where: { id } });
+      if (!current) throw new Error("PRODUCT_NOT_FOUND");
+
+      // Update product
+      await tx.product.update({
+        where: { id },
+        data: {
+          name,
+          sku,
+          description,
+          price,
+          quantity,
+          minStock,
+          categoryId,
+        },
+      });
+
+      // If quantity changed, create a stock adjustment movement for traceability
+      const diff = quantity - current.quantity;
+      if (diff !== 0) {
+        await tx.stockMovement.create({
+          data: {
+            productId: id,
+            type: diff > 0 ? "IN" : "OUT",
+            quantity: Math.abs(diff),
+            reason: "Ajuste manual de estoque",
+          },
+        });
+      }
+    });
+  } catch (error: any) {
+    if (error.message === "SKU_DUPLICATE") {
+      return { message: "SKU já existe em outro produto." };
     }
-
-    await prisma.product.update({
-      where: { id },
-      data: {
-        name,
-        sku,
-        description,
-        price,
-        quantity,
-        minStock,
-        categoryId,
-      },
-    });
-  } catch (error) {
+    if (error.message === "PRODUCT_NOT_FOUND") {
+      return { message: "Produto não encontrado." };
+    }
     return {
       message: "Erro ao atualizar produto.",
     };
@@ -137,17 +164,19 @@ export async function updateProduct(
 
 export async function deleteProduct(id: string) {
   try {
-    const product = await prisma.product.findUnique({ where: { id } });
+    // Atomic soft-delete: read + update in a single transaction
+    await prisma.$transaction(async (tx) => {
+      const product = await tx.product.findUnique({ where: { id } });
+      if (!product) throw new Error("NOT_FOUND");
 
-    if (product) {
-      await prisma.product.update({
+      await tx.product.update({
         where: { id },
         data: {
           deletedAt: new Date(),
           sku: `${product.sku}-DELETED-${Date.now()}`,
         },
       });
-    }
+    });
     revalidatePath("/produtos");
     return { success: true };
   } catch (error) {

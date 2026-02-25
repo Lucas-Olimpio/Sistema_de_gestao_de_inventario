@@ -8,6 +8,25 @@ datasource db {
   
 }
 
+// ─── Auth ──────────────────────────────────────
+
+enum Role {
+  ADMIN
+  OPERADOR
+  VISUALIZADOR
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String   // bcrypt hash
+  role      Role     @default(OPERADOR)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Category {
   id          String    @id @default(cuid())
   name        String    @unique
@@ -94,6 +113,7 @@ model GoodsReceipt {
   purchaseOrderId String
   purchaseOrder   PurchaseOrder      @relation(fields: [purchaseOrderId], references: [id])
   notes           String?
+  nfePath         String?
   items           GoodsReceiptItem[]
   createdAt       DateTime           @default(now())
 }
@@ -193,6 +213,17 @@ model OrderStatusHistory {
   newStatus String
   changedBy String?
   changedAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String   // CREATE, UPDATE, DELETE
+  entity    String   // Model name (Product, SalesOrder, etc.)
+  entityId  String
+  oldData   String?  // JSON stringified snapshot
+  newData   String?  // JSON stringified snapshot
+  createdAt DateTime @default(now())
 }
 
 model BankAccount {
