@@ -40,4 +40,14 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/app/generated/prisma
+# Database local
+*.db
+*.db-journal
+
+# Ficheiros temporarios de logs
+status.txt
+git_status.txt
+build_output.log
+
+# Prisma Client Gerado
+/generated/prisma/
