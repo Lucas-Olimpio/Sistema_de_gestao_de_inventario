@@ -1,0 +1,65 @@
+name: CI — Testes e Verificação de Qualidade
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test-and-build:
+    name: Testes, Types e Build
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout do código
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2. Configurar Node.js 20
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # 3. Instalar pnpm
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      # 4. Cache de dependências para builds mais rápidas
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      # 5. Instalar dependências
+      - name: Instalar dependências
+        run: pnpm install --frozen-lockfile
+
+      # 6. Gerar Prisma Client (necessário para type-check e testes)
+      - name: Gerar Prisma Client
+        run: pnpm prisma generate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      # 7. Verificação de tipos TypeScript
+      - name: Verificação de types (TypeScript)
+        run: pnpm exec tsc --noEmit
+
+      # 8. Correr testes Vitest
+      - name: Testes unitários (Vitest)
+        run: pnpm test
+
+      # 9. Build de produção — bloqueia o merge se falhar
+      - name: Build de produção (Next.js)
+        run: pnpm build
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+          AUTH_URL: ${{ secrets.AUTH_URL }}
+          SYSTEM_ERROR_WEBHOOK_URL: ${{ secrets.SYSTEM_ERROR_WEBHOOK_URL }}

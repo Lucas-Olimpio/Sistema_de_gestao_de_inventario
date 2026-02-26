@@ -1,0 +1,44 @@
+name: Deploy — Produção (Vercel)
+
+on:
+  # Só faz deploy quando o CI passar na branch main
+  workflow_run:
+    workflows: ["CI — Testes e Verificação de Qualidade"]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  deploy:
+    name: Deploy para Vercel
+    runs-on: ubuntu-latest
+    # Só executa se o CI anterior foi bem-sucedido
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Instalar Vercel CLI
+        run: pnpm add -g vercel@latest
+
+      # Obtém as configurações do projeto Vercel (vercel.json, etc.)
+      - name: Pull configuração Vercel
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      # Build com as variáveis de ambiente de produção do Vercel
+      - name: Build para produção
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      # Deploy do artefacto já compilado
+      - name: Deploy para Vercel (produção)
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
