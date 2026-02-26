@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { writeFile } from "fs/promises";
 import { join } from "path";
-import { Prisma } from "@prisma/client";
+import Decimal from "decimal.js";
 
 export async function POST(req: NextRequest) {
   try {
@@ -67,12 +67,12 @@ export async function POST(req: NextRequest) {
       productId: string;
       receivedQty: number;
       reason: string;
-      unitPrice: Prisma.Decimal;
+      unitPrice: Decimal;
     };
 
     const receiptItems: ReceiptItem[] = [];
     const stockUpdates: StockUpdate[] = [];
-    let runningTotal = new Prisma.Decimal(0);
+    let runningTotal = new Decimal(0);
 
     for (const item of items) {
       const productId = item.productId;
@@ -84,7 +84,8 @@ export async function POST(req: NextRequest) {
       const hasDivergence = ordered ? receivedQty !== ordered.quantity : true;
 
       if (ordered) {
-        const lineTotal = ordered.unitPrice.mul(receivedQty);
+        const unitPrice = new Decimal(String((ordered as any).unitPrice ?? 0));
+        const lineTotal = unitPrice.mul(receivedQty);
         runningTotal = runningTotal.add(lineTotal);
       }
 
@@ -99,7 +100,9 @@ export async function POST(req: NextRequest) {
           productId,
           receivedQty,
           reason: `Recebimento PO ${po.code}`,
-          unitPrice: ordered ? ordered.unitPrice : new Prisma.Decimal(0),
+          unitPrice: ordered
+            ? new Decimal(String((ordered as any).unitPrice ?? 0))
+            : new Decimal(0),
         });
       }
     }
@@ -147,22 +150,26 @@ export async function POST(req: NextRequest) {
         });
 
         if (product) {
-          // Weighted average cost
-          const currentTotalValue =
-            Number(product.quantity) * Number(product.costPrice);
-          const newItemsValue = update.receivedQty * Number(update.unitPrice);
-          const newTotalQty = Number(product.quantity) + update.receivedQty;
+          // Weighted average cost using decimal.js
+          const currentTotalValue = new Decimal(String(product.quantity)).mul(
+            new Decimal(String(product.costPrice)),
+          );
+          const newItemsValue = new Decimal(update.receivedQty).mul(
+            new Decimal(String(update.unitPrice)),
+          );
+          const newTotalQty = new Decimal(String(product.quantity)).add(
+            new Decimal(update.receivedQty),
+          );
 
-          const averageCost =
-            newTotalQty > 0
-              ? (currentTotalValue + newItemsValue) / newTotalQty
-              : Number(update.unitPrice);
+          const averageCost = newTotalQty.gt(0)
+            ? currentTotalValue.add(newItemsValue).div(newTotalQty)
+            : new Decimal(String(update.unitPrice));
 
           await tx.product.update({
             where: { id: update.productId },
             data: {
               quantity: { increment: update.receivedQty },
-              costPrice: new Prisma.Decimal(averageCost),
+              costPrice: averageCost.toString(),
             },
           });
         }
@@ -187,14 +194,14 @@ export async function POST(req: NextRequest) {
           await tx.accountsPayable.update({
             where: { id: existing.id },
             data: {
-              amount: { increment: runningTotal },
+              amount: { increment: runningTotal.toString() },
             },
           });
         } else {
           await tx.accountsPayable.create({
             data: {
               purchaseOrderId,
-              amount: runningTotal,
+              amount: runningTotal.toString(),
             },
           });
         }
