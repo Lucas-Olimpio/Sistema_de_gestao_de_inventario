@@ -17,9 +17,9 @@ export async function GET(request: Request) {
 
     if (search) {
       where.OR = [
-        { name: { contains: search } },
-        { sku: { contains: search } },
-        { description: { contains: search } },
+        { name: { contains: search, mode: "insensitive" } },
+        { sku: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
       ];
     }
 
@@ -41,6 +41,7 @@ export async function GET(request: Request) {
     const safeProducts = products.map((p) => ({
       ...p,
       price: Number(p.price),
+      costPrice: Number(p.costPrice),
     }));
 
     return NextResponse.json({

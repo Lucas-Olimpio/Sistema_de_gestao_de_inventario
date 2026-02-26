@@ -448,6 +448,7 @@ export type StockMovementCreateOrConnectWithoutProductInput = {
 
 export type StockMovementCreateManyProductInputEnvelope = {
   data: Prisma.StockMovementCreateManyProductInput | Prisma.StockMovementCreateManyProductInput[]
+  skipDuplicates?: boolean
 }
 
 export type StockMovementUpsertWithWhereUniqueWithoutProductInput = {
@@ -1233,6 +1234,7 @@ export type StockMovementCreateManyArgs<ExtArgs extends runtime.Types.Extensions
    * The data used to create many StockMovements.
    */
   data: Prisma.StockMovementCreateManyInput | Prisma.StockMovementCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
@@ -1251,6 +1253,7 @@ export type StockMovementCreateManyAndReturnArgs<ExtArgs extends runtime.Types.E
    * The data used to create many StockMovements.
    */
   data: Prisma.StockMovementCreateManyInput | Prisma.StockMovementCreateManyInput[]
+  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */

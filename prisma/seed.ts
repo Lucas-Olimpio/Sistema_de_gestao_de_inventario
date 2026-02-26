@@ -1,15 +1,10 @@
 import "dotenv/config";
 import { PrismaClient } from "../generated/prisma/client";
-import { PrismaLibSql } from "@prisma/adapter-libsql";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { fakerPT_BR as faker } from "@faker-js/faker";
 import { hashSync } from "bcryptjs";
-import path from "path";
 
-const dbPath = path.resolve(process.cwd(), "prisma", "dev.db");
-const normalizedPath = dbPath.replace(/\\/g, "/");
-const finalUrl = `file:///${normalizedPath}`;
-
-const adapter = new PrismaLibSql({ url: finalUrl });
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 
 const prisma = new PrismaClient({ adapter });
 

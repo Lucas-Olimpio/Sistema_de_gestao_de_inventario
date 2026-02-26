@@ -69,7 +69,8 @@ export const ModelName = {
   OrderStatusHistory: 'OrderStatusHistory',
   AuditLog: 'AuditLog',
   BankAccount: 'BankAccount',
-  Transaction: 'Transaction'
+  Transaction: 'Transaction',
+  SystemError: 'SystemError'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -79,6 +80,9 @@ export type ModelName = (typeof ModelName)[keyof typeof ModelName]
  */
 
 export const TransactionIsolationLevel = runtime.makeStrictEnum({
+  ReadUncommitted: 'ReadUncommitted',
+  ReadCommitted: 'ReadCommitted',
+  RepeatableRead: 'RepeatableRead',
   Serializable: 'Serializable'
 } as const)
 
@@ -336,12 +340,32 @@ export const TransactionScalarFieldEnum = {
 export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
 
 
+export const SystemErrorScalarFieldEnum = {
+  id: 'id',
+  path: 'path',
+  message: 'message',
+  stackTrace: 'stackTrace',
+  payload: 'payload',
+  createdAt: 'createdAt'
+} as const
+
+export type SystemErrorScalarFieldEnum = (typeof SystemErrorScalarFieldEnum)[keyof typeof SystemErrorScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
+} as const
+
+export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
 
 
 export const NullsOrder = {

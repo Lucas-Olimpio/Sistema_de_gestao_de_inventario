@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { salesOrderSchema } from "@/lib/schemas";
+import { auth } from "@/lib/auth";
 
 export async function GET(request: Request) {
   try {
@@ -19,7 +20,7 @@ export async function GET(request: Request) {
         items: {
           include: { product: { select: { name: true, sku: true } } },
         },
-        receivable: { select: { status: true } },
+        receivables: { select: { status: true } },
       },
       orderBy: { createdAt: "desc" },
     });
@@ -45,6 +46,16 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const session = await auth();
+    if (session?.user?.role === "VISUALIZADOR") {
+      return NextResponse.json(
+        {
+          error:
+            "Acesso negado: Visualizadores não podem criar pedidos de venda.",
+        },
+        { status: 403 },
+      );
+    }
     const body = await request.json();
 
     // Validate and transform with Zod

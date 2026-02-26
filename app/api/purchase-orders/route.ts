@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { purchaseOrderSchema } from "@/lib/schemas";
+import { auth } from "@/lib/auth";
 
 export async function GET(request: Request) {
   try {
@@ -45,6 +46,16 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const session = await auth();
+    if (session?.user?.role === "VISUALIZADOR") {
+      return NextResponse.json(
+        {
+          error:
+            "Acesso negado: Visualizadores não podem criar ordens de compra.",
+        },
+        { status: 403 },
+      );
+    }
     const body = await request.json();
 
     const validatedData = purchaseOrderSchema.safeParse(body);

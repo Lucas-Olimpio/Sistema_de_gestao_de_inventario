@@ -112,3 +112,8 @@ export type BankAccount = Prisma.BankAccountModel
  * 
  */
 export type Transaction = Prisma.TransactionModel
+/**
+ * Model SystemError
+ * 
+ */
+export type SystemError = Prisma.SystemErrorModel

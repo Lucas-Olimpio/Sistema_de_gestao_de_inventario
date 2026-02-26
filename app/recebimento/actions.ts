@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { goodsReceiptSchema } from "@/lib/schemas";
 import { Prisma } from "@prisma/client";
+import { auth } from "@/lib/auth";
 
 export type State = {
   errors?: {
@@ -24,6 +25,15 @@ export async function createGoodsReceipt(
 export async function createGoodsReceiptAction(
   data: z.infer<typeof goodsReceiptSchema>,
 ) {
+  const session = await auth();
+  if (session?.user?.role === "VISUALIZADOR") {
+    return {
+      success: false,
+      message:
+        "Acesso negado: Visualizadores não podem registrar recebimentos.",
+    };
+  }
+
   const validatedFields = goodsReceiptSchema.safeParse(data);
 
   if (!validatedFields.success) {

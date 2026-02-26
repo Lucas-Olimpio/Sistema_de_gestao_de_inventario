@@ -1,6 +1,5 @@
 import { PrismaClient } from "@/generated/prisma/client";
-import { PrismaLibSql } from "@prisma/adapter-libsql";
-import { createClient } from "@libsql/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { createAuditExtension } from "@/lib/audit";
 
 const globalForPrisma = globalThis as unknown as {
@@ -8,16 +7,12 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createBasePrismaClient() {
-  const adapter = new PrismaLibSql({
-    url: process.env.TURSO_DATABASE_URL ?? "file:prisma/dev.db",
-    authToken: process.env.TURSO_AUTH_TOKEN,
-  });
+  const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
   return new PrismaClient({ adapter });
 }
 
 function buildPrismaClient() {
   const base = createBasePrismaClient();
-  // Apply audit extension — intercepts update/delete on critical models
   return base.$extends(createAuditExtension(base));
 }
 

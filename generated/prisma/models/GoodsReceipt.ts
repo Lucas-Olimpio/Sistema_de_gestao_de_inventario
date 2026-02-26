@@ -408,6 +408,7 @@ export type GoodsReceiptCreateOrConnectWithoutPurchaseOrderInput = {
 
 export type GoodsReceiptCreateManyPurchaseOrderInputEnvelope = {
   data: Prisma.GoodsReceiptCreateManyPurchaseOrderInput | Prisma.GoodsReceiptCreateManyPurchaseOrderInput[]
+  skipDuplicates?: boolean
 }
 
 export type GoodsReceiptUpsertWithWhereUniqueWithoutPurchaseOrderInput = {
@@ -1267,6 +1268,7 @@ export type GoodsReceiptCreateManyArgs<ExtArgs extends runtime.Types.Extensions.
    * The data used to create many GoodsReceipts.
    */
   data: Prisma.GoodsReceiptCreateManyInput | Prisma.GoodsReceiptCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
@@ -1285,6 +1287,7 @@ export type GoodsReceiptCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Ex
    * The data used to create many GoodsReceipts.
    */
   data: Prisma.GoodsReceiptCreateManyInput | Prisma.GoodsReceiptCreateManyInput[]
+  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */

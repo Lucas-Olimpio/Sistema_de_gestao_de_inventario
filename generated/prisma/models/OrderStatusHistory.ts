@@ -1039,6 +1039,7 @@ export type OrderStatusHistoryCreateManyArgs<ExtArgs extends runtime.Types.Exten
    * The data used to create many OrderStatusHistories.
    */
   data: Prisma.OrderStatusHistoryCreateManyInput | Prisma.OrderStatusHistoryCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
@@ -1057,6 +1058,7 @@ export type OrderStatusHistoryCreateManyAndReturnArgs<ExtArgs extends runtime.Ty
    * The data used to create many OrderStatusHistories.
    */
   data: Prisma.OrderStatusHistoryCreateManyInput | Prisma.OrderStatusHistoryCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**

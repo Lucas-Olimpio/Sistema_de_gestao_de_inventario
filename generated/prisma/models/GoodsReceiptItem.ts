@@ -468,6 +468,7 @@ export type GoodsReceiptItemCreateOrConnectWithoutProductInput = {
 
 export type GoodsReceiptItemCreateManyProductInputEnvelope = {
   data: Prisma.GoodsReceiptItemCreateManyProductInput | Prisma.GoodsReceiptItemCreateManyProductInput[]
+  skipDuplicates?: boolean
 }
 
 export type GoodsReceiptItemUpsertWithWhereUniqueWithoutProductInput = {
@@ -518,6 +519,7 @@ export type GoodsReceiptItemCreateOrConnectWithoutGoodsReceiptInput = {
 
 export type GoodsReceiptItemCreateManyGoodsReceiptInputEnvelope = {
   data: Prisma.GoodsReceiptItemCreateManyGoodsReceiptInput | Prisma.GoodsReceiptItemCreateManyGoodsReceiptInput[]
+  skipDuplicates?: boolean
 }
 
 export type GoodsReceiptItemUpsertWithWhereUniqueWithoutGoodsReceiptInput = {
@@ -1317,6 +1319,7 @@ export type GoodsReceiptItemCreateManyArgs<ExtArgs extends runtime.Types.Extensi
    * The data used to create many GoodsReceiptItems.
    */
   data: Prisma.GoodsReceiptItemCreateManyInput | Prisma.GoodsReceiptItemCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
@@ -1335,6 +1338,7 @@ export type GoodsReceiptItemCreateManyAndReturnArgs<ExtArgs extends runtime.Type
    * The data used to create many GoodsReceiptItems.
    */
   data: Prisma.GoodsReceiptItemCreateManyInput | Prisma.GoodsReceiptItemCreateManyInput[]
+  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */

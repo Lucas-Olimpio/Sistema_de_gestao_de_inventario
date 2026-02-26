@@ -1,11 +1,20 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const session = await auth();
+    if (session?.user?.role === "VISUALIZADOR") {
+      return NextResponse.json(
+        { error: "Acesso negado: Visualizadores não podem editar clientes." },
+        { status: 403 },
+      );
+    }
+
     const { id } = await params;
     const body = await request.json();
     const { name, cpfCnpj, email, phone, address } = body;
@@ -43,6 +52,14 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const session = await auth();
+    if (session?.user?.role === "VISUALIZADOR") {
+      return NextResponse.json(
+        { error: "Acesso negado: Visualizadores não podem excluir clientes." },
+        { status: 403 },
+      );
+    }
+
     const { id } = await params;
 
     const ordersCount = await prisma.salesOrder.count({

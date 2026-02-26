@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 
 export async function GET(
   _request: Request,
@@ -14,7 +15,7 @@ export async function GET(
         items: {
           include: { product: { select: { name: true, sku: true } } },
         },
-        receivable: true,
+        receivables: true,
       },
     });
 
@@ -40,6 +41,16 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const session = await auth();
+    if (session?.user?.role === "VISUALIZADOR") {
+      return NextResponse.json(
+        {
+          error:
+            "Acesso negado: Visualizadores não podem atualizar pedidos de venda.",
+        },
+        { status: 403 },
+      );
+    }
     const { id } = await params;
     const body = await request.json();
     const { status } = body;
@@ -175,6 +186,16 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const session = await auth();
+    if (session?.user?.role === "VISUALIZADOR") {
+      return NextResponse.json(
+        {
+          error:
+            "Acesso negado: Visualizadores não podem excluir pedidos de venda.",
+        },
+        { status: 403 },
+      );
+    }
     const { id } = await params;
     const order = await prisma.salesOrder.findUnique({
       where: { id },

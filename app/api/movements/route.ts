@@ -1,8 +1,16 @@
 import { NextResponse } from "next/server";
+import { waitUntil } from "@vercel/functions";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
+import { logError } from "@/lib/logger";
 
 export async function GET(request: Request) {
   try {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const productId = searchParams.get("productId") || "";
 
@@ -20,7 +28,15 @@ export async function GET(request: Request) {
 
     return NextResponse.json(movements);
   } catch (error) {
-    console.error("Error fetching movements:", error);
+    // Fire-and-forget background execution using Vercel waitUntil
+    waitUntil(
+      logError({
+        path: "/api/movements (GET)",
+        message: "Erro ao buscar movimentações",
+        error,
+      }).catch(console.error),
+    );
+
     return NextResponse.json(
       { error: "Erro ao buscar movimentações" },
       { status: 500 },
@@ -30,6 +46,21 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
+    if (session.user.role !== "ADMIN" && session.user.role !== "OPERADOR") {
+      return NextResponse.json(
+        {
+          error:
+            "Acesso negado. Apenas Administradores e Operadores podem registar movimentações.",
+        },
+        { status: 403 },
+      );
+    }
+
     const body = await request.json();
     const { productId, type, quantity, reason } = body;
 
@@ -86,15 +117,30 @@ export async function POST(request: Request) {
       prisma.product.update({
         where: { id: productId },
         data: {
-          quantity:
-            type === "IN" ? product.quantity + qty : product.quantity - qty,
+          quantity: type === "IN" ? { increment: qty } : { decrement: qty },
         },
       }),
     ]);
 
     return NextResponse.json(movement, { status: 201 });
   } catch (error) {
-    console.error("Error creating movement:", error);
+    let body = {};
+    try {
+      body = await request.clone().json();
+    } catch (_) {
+      /* body not JSON, ignore */
+    }
+
+    // Fire-and-forget background execution using Vercel waitUntil
+    waitUntil(
+      logError({
+        path: "/api/movements (POST)",
+        message: "Erro ao criar movimentação",
+        error,
+        payload: body,
+      }).catch(console.error),
+    );
+
     return NextResponse.json(
       { error: "Erro ao criar movimentação" },
       { status: 500 },

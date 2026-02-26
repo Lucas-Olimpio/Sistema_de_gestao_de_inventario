@@ -502,6 +502,7 @@ export type InstallmentCreateOrConnectWithoutSalesOrderInput = {
 
 export type InstallmentCreateManySalesOrderInputEnvelope = {
   data: Prisma.InstallmentCreateManySalesOrderInput | Prisma.InstallmentCreateManySalesOrderInput[]
+  skipDuplicates?: boolean
 }
 
 export type InstallmentUpsertWithWhereUniqueWithoutSalesOrderInput = {
@@ -1309,6 +1310,7 @@ export type InstallmentCreateManyArgs<ExtArgs extends runtime.Types.Extensions.I
    * The data used to create many Installments.
    */
   data: Prisma.InstallmentCreateManyInput | Prisma.InstallmentCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
@@ -1327,6 +1329,7 @@ export type InstallmentCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Ext
    * The data used to create many Installments.
    */
   data: Prisma.InstallmentCreateManyInput | Prisma.InstallmentCreateManyInput[]
+  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */

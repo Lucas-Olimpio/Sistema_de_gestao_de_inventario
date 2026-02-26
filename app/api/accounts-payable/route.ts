@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 
 export async function GET() {
   try {
@@ -30,6 +31,16 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   try {
+    const session = await auth();
+    if (session?.user?.role === "VISUALIZADOR") {
+      return NextResponse.json(
+        {
+          error:
+            "Acesso negado: Visualizadores não podem alterar estados de contas.",
+        },
+        { status: 403 },
+      );
+    }
     const body = await request.json();
     const { id } = body;
 

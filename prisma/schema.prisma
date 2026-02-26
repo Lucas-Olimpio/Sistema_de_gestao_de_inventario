@@ -4,8 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  
+  provider = "postgresql"
 }
 
 // ─── Auth ──────────────────────────────────────
@@ -253,4 +252,15 @@ enum PaymentMethod {
   DEBIT_CARD
   BOLETO
   TRANSFER
+}
+
+// ─── System Error Monitoring ────────────────────────────────
+
+model SystemError {
+  id         String   @id @default(cuid())
+  path       String   // e.g., "/api/movements"
+  message    String
+  stackTrace String?
+  payload    String?
+  createdAt  DateTime @default(now())
 }

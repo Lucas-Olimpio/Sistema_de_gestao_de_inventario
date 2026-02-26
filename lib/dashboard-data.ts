@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { DashboardData } from "@/lib/types";
+import { Prisma } from "@prisma/client";
 
 export async function getDashboardData(
   from?: string,
@@ -21,24 +22,37 @@ export async function getDashboardData(
   const result = await prisma.$queryRaw<
     Array<{ totalVal: unknown; totalQty: unknown }>
   >`
-    SELECT SUM(price * quantity) as totalVal, SUM(quantity) as totalQty FROM Product
+    SELECT SUM(price * quantity) as totalVal, SUM(quantity) as totalQty FROM "Product"
   `;
 
   const totalValue = Number(result[0]?.totalVal || 0);
   const totalQuantity = Number(result[0]?.totalQty || 0);
 
-  const allProducts = await prisma.product.findMany({
-    select: {
-      id: true,
-      name: true,
-      sku: true,
-      quantity: true,
-      minStock: true,
-      category: { select: { name: true } },
-    },
-    orderBy: { quantity: "asc" },
-  });
-  const lowStock = allProducts.filter((p) => p.quantity <= (p.minStock || 0));
+  const lowStockRaw = await prisma.$queryRaw<
+    Array<{
+      id: string;
+      name: string;
+      sku: string;
+      quantity: unknown;
+      minStock: unknown;
+      categoryName: string | null;
+    }>
+  >`
+    SELECT p.id, p.name, p.sku, p.quantity, p."minStock", c.name as categoryName
+    FROM "Product" p
+    LEFT JOIN "Category" c ON p."categoryId" = c.id
+    WHERE p.quantity <= p."minStock" AND p."deletedAt" IS NULL
+    ORDER BY p.quantity ASC
+  `;
+
+  const lowStock = lowStockRaw.map((l) => ({
+    id: l.id,
+    name: l.name,
+    sku: l.sku,
+    quantity: Number(l.quantity),
+    minStock: Number(l.minStock || 0),
+    category: { name: l.categoryName || "Sem categoria" },
+  }));
 
   const totalCategories = await prisma.category.count();
 
@@ -70,45 +84,53 @@ export async function getDashboardData(
   });
   const totalOut = movementsOutData._sum.quantity || 0;
 
-  const periodMovements = await prisma.stockMovement.findMany({
-    where: dateFilter,
-    select: { type: true, quantity: true, createdAt: true },
-    orderBy: { createdAt: "asc" },
-  });
+  let dateCondition = Prisma.sql`WHERE 1=1`;
+  if (from && to) {
+    const start = new Date(from);
+    const end = new Date(to);
+    end.setUTCHours(23, 59, 59, 999);
 
-  const movementsByDay: Record<
-    string,
-    { date: string; in: number; out: number }
-  > = {};
-  for (const m of periodMovements) {
-    const day = new Date(m.createdAt).toISOString().split("T")[0];
-    if (!movementsByDay[day]) {
-      movementsByDay[day] = { date: day, in: 0, out: 0 };
-    }
-    if (m.type === "IN") {
-      movementsByDay[day].in += m.quantity;
-    } else {
-      movementsByDay[day].out += m.quantity;
-    }
+    const startDate = start.toISOString();
+    const endDate = end.toISOString();
+    dateCondition = Prisma.sql`WHERE "createdAt" >= ${startDate}::timestamptz AND "createdAt" <= ${endDate}::timestamptz`;
   }
-  const movementTimeline = Object.values(movementsByDay).sort((a, b) =>
-    a.date.localeCompare(b.date),
-  );
 
-  const categoryDistribution = await prisma.category.findMany({
-    include: {
-      _count: { select: { products: true } },
-      products: { select: { price: true, quantity: true } },
-    },
-  });
+  const movementsByDayRaw = await prisma.$queryRaw<
+    Array<{ date: string; inQty: number; outQty: number }>
+  >`
+    SELECT 
+      TO_CHAR("createdAt"::date, 'YYYY-MM-DD') as date,
+      CAST(SUM(CASE WHEN type = 'IN' THEN quantity ELSE 0 END) AS INTEGER) as "inQty",
+      CAST(SUM(CASE WHEN type = 'OUT' THEN quantity ELSE 0 END) AS INTEGER) as "outQty"
+    FROM "StockMovement"
+    ${dateCondition}
+    GROUP BY "createdAt"::date
+    ORDER BY "createdAt"::date ASC
+  `;
 
-  const categories = categoryDistribution.map((cat) => ({
+  const movementTimeline = movementsByDayRaw.map((m) => ({
+    date: m.date,
+    in: m.inQty ?? 0,
+    out: m.outQty ?? 0,
+  }));
+
+  const categoryDistributionRaw = await prisma.$queryRaw<
+    Array<{ name: string; productsCount: number; totalValue: number }>
+  >`
+    SELECT 
+      c.name, 
+      CAST(COUNT(p.id) AS INTEGER) as "productsCount", 
+      CAST(COALESCE(SUM(p.quantity * p.price), 0) AS NUMERIC) as "totalValue"
+    FROM "Category" c
+    LEFT JOIN "Product" p ON c.id = p."categoryId" AND p."deletedAt" IS NULL
+    WHERE c."deletedAt" IS NULL
+    GROUP BY c.id, c.name
+  `;
+
+  const categories = categoryDistributionRaw.map((cat) => ({
     name: cat.name,
-    products: cat._count.products,
-    value: cat.products.reduce(
-      (sum, p) => sum + Number(p.price) * p.quantity,
-      0,
-    ),
+    products: cat.productsCount ?? 0,
+    value: Number(cat.totalValue ?? 0),
   }));
 
   const payablesGrouped = await prisma.accountsPayable.groupBy({

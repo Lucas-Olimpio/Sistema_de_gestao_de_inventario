@@ -1,7 +1,6 @@
 # InvenPro — Sistema de Gestão de Inventário
 
-Sistema completo de gestão de inventário com ciclo de compras e vendas, construído com **Next.js 16**, **TypeScript**, **Tailwind CSS v4**, **Prisma 7** e **SQLite**.
-(Obs: O projeto está em desenvolvimento, e algumas funcionalidades podem não estar funcionando corretamente.)
+Sistema completo de gestão de inventário com ciclo de compras e vendas, construído com **Next.js 16**, **TypeScript**, **Prisma 7** e **PostgreSQL**.
 
 ## O que é
 
@@ -12,29 +11,29 @@ O InvenPro é um sistema ERP simplificado que gerencia o **ciclo completo** de u
    (compra)        (estoque)       (venda)
 ```
 
-- **Compra**: Entrada de mercadoria e controle de custos
+- **Compra**: Entrada de mercadoria e controle de custos (média ponderada)
 - **Gestão interna**: Controle de estoque, categorias e movimentações
-- **Venda**: Saída de mercadoria e controle de receita
-
-> **Nota**: Este projeto foi configurado para **execução local (Local-First)** utilizando SQLite. Não é necessária a instalação de bancos de dados externos ou configurações complexas de ambiente para rodá-lo.
+- **Venda**: Saída de mercadoria, faturamento e contas a receber
 
 ---
 
 ## Tecnologias
 
-| Tecnologia                                    | Versão             | Função                                    |
-| --------------------------------------------- | ------------------ | ----------------------------------------- |
-| [Next.js](https://nextjs.org/)                | 16.1.6             | Framework full-stack (React + API Routes) |
-| [React](https://react.dev/)                   | 19.2.3             | Biblioteca de UI                          |
-| [TypeScript](https://www.typescriptlang.org/) | 5.x                | Tipagem estática                          |
-| [Prisma](https://www.prisma.io/)              | 7.4.0              | ORM (Object-Relational Mapping)           |
-| [SQLite](https://www.sqlite.org/)             | via better-sqlite3 | Banco de dados local                      |
-| [Tailwind CSS](https://tailwindcss.com/)      | 4.x                | Framework de CSS utilitário               |
-| [Lucide React](https://lucide.dev/)           | 0.564+             | Biblioteca de ícones                      |
-| [TanStack Query](https://tanstack.com/query)  | 5.x                | Gerenciamento de estado e cache (Client)  |
-| [Zod](https://zod.dev/)                       | 3.x                | Validação de esquemas e tipos             |
+| Tecnologia                                    | Versão     | Função                                    |
+| --------------------------------------------- | ---------- | ----------------------------------------- |
+| [Next.js](https://nextjs.org/)                | 16.1.6     | Framework full-stack (React + API Routes) |
+| [React](https://react.dev/)                   | 19.2.3     | Biblioteca de UI                          |
+| [TypeScript](https://www.typescriptlang.org/) | 5.x        | Tipagem estática                          |
+| [Prisma](https://www.prisma.io/)              | 7.4.0      | ORM com driver adapter                    |
+| [PostgreSQL](https://www.postgresql.org/)     | 16         | Banco de dados relacional                 |
+| [pg](https://node-postgres.com/)              | 8.x        | Driver PostgreSQL para Node.js            |
+| [TanStack Query](https://tanstack.com/query)  | 5.x        | Cache e estado do servidor (Client)       |
+| [NextAuth.js](https://next-auth.js.org/)      | 5.x (beta) | Autenticação                              |
+| [Zod](https://zod.dev/)                       | 4.x        | Validação de esquemas                     |
+| [Lucide React](https://lucide.dev/)           | 0.564+     | Ícones                                    |
+| [Sonner](https://sonner.emilkowal.ski/)       | 2.x        | Notificações toast                        |
 
-### Como os serviços se conectam
+### Arquitetura
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -47,49 +46,39 @@ O InvenPro é um sistema ERP simplificado que gerencia o **ciclo completo** de u
 │           │ Access           │ Routes    │ Actions  │
 │           │                  ▼           ▼          │
 │           │           ┌────────────┐ ┌────────────┐ │
-│           │           │ React Query│ │ Mutations  │ │
+│           │           │ TanStack Q │ │ Mutations  │ │
 │           │           └──────┬─────┘ └─────┬──────┘ │
 └───────────┼──────────────────┼─────────────┼────────┘
             │                  │ fetch()     │ POST
             ▼                  ▼             ▼
 ┌─────────────────────────────────────────────────────┐
 │  Backend / Database Layer                           │
-│  (Next.js App Router + Prisma)                      │
+│  Next.js App Router + Prisma 7 + pg adapter         │
 └────────────────────────┬────────────────────────────┘
-                         │ Prisma Client
+                         │ PrismaPg (@prisma/adapter-pg)
                          ▼
 ┌─────────────────────────────────────────────────────┐
-│  SQLite Database (prisma/dev.db)                    │
-│  Via @prisma/adapter-libsql / better-sqlite3        │
+│  PostgreSQL 16 (Docker local / Neon em produção)    │
 └─────────────────────────────────────────────────────┘
 ```
 
-**Arquitetura**: Híbrida. O Dashboard utiliza **Server Components** para acesso direto ao banco (performance). As demais páginas interativas são **Client Components** que utilizam **TanStack Query** para buscar dados via API Routes e **Server Actions** para mutações (criação/edição) com validação Zod. O Prisma conecta ao banco SQLite local.
-
 ---
 
-## Funcionalidades Principais
+## Funcionalidades
 
 ### 📊 Dashboard
 
 - KPIs em tempo real: total de produtos, valor do estoque, alertas de estoque baixo
-- **KPIs financeiros**: Compras (custo) vs Vendas (receita) vs Saldo
-- **Filtros por período**: Hoje, 7 dias, 30 dias, 12 meses, Personalizado
-- **Gráficos interativos**: Desenvolvidos com SVG e CSS puro (sem bibliotecas pesadas de charts).
-  - **LineChart** — Movimentações de estoque (entradas vs saídas ao longo do tempo)
-  - **BarChart** — Compras vs Vendas (comparativo financeiro)
-  - **DonutChart** — Distribuição de produtos por categoria (com popover e legenda interativa)
-  - **HorizontalBarChart** — Status de ordens de compra e pedidos de venda
-- **Skeleton Loading** com efeito shimmer durante o carregamento
-- **Animações escalonadas** (staggered fade-in-up) na entrada dos elementos
-- Movimentações recentes e alertas de estoque baixo
+- KPIs financeiros: Compras vs Vendas vs Saldo
+- Filtros por período: Hoje, 7 dias, 30 dias, 12 meses, Personalizado
+- Gráficos SVG puros (sem bibliotecas): LineChart, BarChart, DonutChart, HorizontalBarChart
+- Alertas de estoque baixo e movimentações recentes
 
 ### 📦 Produtos
 
-- CRUD completo com busca e filtro por categoria
-- Páginas dedicadas: listagem (`/produtos`), criação (`/produtos/novo`), edição (`/produtos/[id]`)
-- SKU único, preço, quantidade, estoque mínimo
-- Badges visuais de status (OK, Baixo, Esgotado)
+- CRUD com busca full-text (case-insensitive) e filtro por categoria
+- Paginação no servidor, SKU único, custo médio ponderado
+- Histórico de movimentações por produto
 
 ### 🏷️ Categorias
 
@@ -97,175 +86,220 @@ O InvenPro é um sistema ERP simplificado que gerencia o **ciclo completo** de u
 
 ### ↔️ Movimentações de Estoque
 
-- Registro de entradas (IN) e saídas (OUT) com motivo
-- Validação de estoque insuficiente nas saídas
-- Atualização automática da quantidade do produto (em transação)
+- Entradas (IN) e saídas (OUT) com motivo
+- Atualização de estoque em transação atómica
+
+### 🛒 Compras
+
+- **Fornecedores**: CRUD com CNPJ único
+- **Ordens de Compra**: código sequencial, fluxo de status com histórico
+- **Recebimento**: conferência cega, divergências, custo médio ponderado, contas a pagar automáticas
+
+### 🛍️ Vendas
+
+- **Clientes**: CRUD com CPF/CNPJ único
+- **Pedidos de Venda**: código sequencial, parcelamento, faturamento com baixa de estoque
+- **Contas a Receber**: geradas automaticamente ao faturar
+
+### 👥 Utilizadores
+
+- Roles: `ADMIN`, `OPERADOR`, `VISUALIZADOR`
+- RBAC aplicado em todas as rotas e Server Actions
+
+### 📋 Auditoria
+
+- Log automático de CREATE/UPDATE/DELETE nas entidades críticas
 
 ---
 
-### 🛒 Módulo COMPRAS (Fornecedor → Empresa)
+## Pré-requisitos
 
-#### Fornecedores
-
-- CRUD com CNPJ único, email, telefone
-- Proteção contra exclusão se tiver pedidos vinculados
-
-#### Ordens de Compra
-
-- Código sequencial automático (`PO-0001`, `PO-0002`...)
-- Status: `PENDENTE` → `APROVADA` → `EM_TRANSITO` → `RECEBIDA` (ou `CANCELADA`)
-- Itens com produto, quantidade e preço unitário
-- Cálculo automático do valor total
-
-#### Recebimento (Conferência Cega)
-
-- Conferência sem mostrar quantidades pedidas ao conferente
-- Detecção automática de divergências
-- **Em transação**: cria recebimento + atualiza estoque + gera movimentação (IN) + gera conta a pagar
-
-#### Contas a Pagar
-
-- Gerada automaticamente no recebimento
-- Ação para marcar como pago
+- [Node.js](https://nodejs.org/) 20+
+- [pnpm](https://pnpm.io/) (gestor de pacotes)
+- [Docker](https://www.docker.com/) (para o PostgreSQL local)
 
 ---
 
-### 🛍️ Módulo VENDAS (Empresa → Cliente)
+## Instalação e Configuração
 
-#### Clientes
-
-- CRUD com CPF/CNPJ único, email, telefone, endereço
-- Proteção contra exclusão se tiver pedidos vinculados
-
-#### Pedidos de Venda
-
-- Código sequencial automático (`VD-0001`, `VD-0002`...)
-- Status: `PENDENTE` → `APROVADA` → `FATURADA` (ou `CANCELADA`)
-- **Faturamento em transação**: verifica estoque → decrementa produto → cria movimentação (OUT) → gera conta a receber
-
-#### Contas a Receber
-
-- Gerada automaticamente ao faturar
-- Cards com totais pendente/recebido
-- Ação para marcar como recebido
-
----
-
-## Instalação
+### 1. Clonar e instalar dependências
 
 ```bash
-# Instalar dependências
-npm install
-
-# Gerar Prisma Client e criar banco de dados
-npx prisma generate
-npx prisma db push
-
-# Popular com dados de exemplo
-npx tsx prisma/seed.ts
-
-# Iniciar servidor de desenvolvimento
-npm run dev
+git clone <url-do-repositório>
+cd sistema_de_gestao_de_inventario
+pnpm install
 ```
 
-### Variáveis de Ambiente
+### 2. Criar o container PostgreSQL com Docker
 
-Crie um arquivo `.env` na raiz do projeto:
+```bash
+docker run --name inventario-db \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=inventario \
+  -p 5432:5432 \
+  -d postgres:16
+```
+
+### 3. Configurar variáveis de ambiente
+
+Crie ou edite o arquivo `.env` na raiz do projecto:
 
 ```env
-# Banco de dados local (SQLite)
-TURSO_DATABASE_URL="file:prisma/dev.db"
+# PostgreSQL (Docker local)
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/inventario"
 
-# (Opcional) Token de autenticação se usar Turso Cloud
-# TURSO_AUTH_TOKEN=""
+# NextAuth — gerar com: openssl rand -base64 32
+AUTH_SECRET="sua-chave-secreta-aqui"
+AUTH_URL="http://localhost:3000"
+
+# (Opcional) Webhook para logs de erros
+# SYSTEM_ERROR_WEBHOOK_URL="https://seu-webhook.com"
+```
+
+### 4. Executar as migrations e popular o banco
+
+```bash
+# Criar o schema no banco
+pnpm prisma migrate dev --name "init-postgres"
+
+# Popular com dados de demonstração (12 meses)
+pnpm exec tsx prisma/seed.ts 12
+```
+
+### 5. Iniciar o servidor de desenvolvimento
+
+```bash
+pnpm dev
 ```
 
 Acesse em [http://localhost:3000](http://localhost:3000).
 
-Para visualizar o banco de dados:
+**Credenciais padrão (geradas pelo seed):**
+
+| Campo    | Valor                |
+| -------- | -------------------- |
+| Email    | `admin@invenpro.com` |
+| Password | `admin123`           |
+
+---
+
+## Comandos Úteis
 
 ```bash
-npx prisma studio
+# Reiniciar o container PostgreSQL (após reiniciar o PC)
+docker start inventario-db
+
+# Regenerar Prisma Client (após alterar schema.prisma)
+pnpm prisma generate
+
+# Visualizar o banco de dados no browser
+pnpm prisma studio
+
+# Re-executar o seed com período diferente (ex: 6 meses)
+pnpm exec tsx prisma/seed.ts 6
+
+# Build de produção
+pnpm build
+pnpm start
 ```
 
 ---
 
-## Estrutura do Projeto
+## Estrutura do Projecto
 
 ```
 app/
 ├── api/
-│   ├── products/            # CRUD de produtos
+│   ├── products/            # CRUD de produtos (paginado, busca insensitive)
 │   ├── categories/          # CRUD de categorias
 │   ├── movements/           # Movimentações de estoque
 │   ├── suppliers/           # CRUD de fornecedores
-│   ├── purchase-orders/     # Ordens de compra
+│   ├── purchase-orders/     # Ordens de compra + [id]/
 │   ├── accounts-payable/    # Contas a pagar
 │   ├── customers/           # CRUD de clientes
-│   ├── sales-orders/        # Pedidos de venda
-│   └── accounts-receivable/ # Contas a receber
-├── hooks/
-│   ├── use-purchase-orders.ts # Hook react-query para ordens
-│   └── ...                    # Outros hooks de data fetching
+│   ├── sales-orders/        # Pedidos de venda + [id]/
+│   ├── accounts-receivable/ # Contas a receber
+│   ├── users/               # Gestão de utilizadores (admin)
+│   ├── export/              # Exportação CSV/XLSX (streaming)
+│   └── recebimento/         # API de recebimento de mercadoria
+├── hooks/                   # Hooks TanStack Query (use-products, etc.)
 ├── components/
-│   ├── charts/
-│   │   ├── bar-chart.tsx          # Gráfico de barras com popover interativo
-│   │   ├── donut-chart.tsx        # Gráfico de rosca com legenda e tooltip
-│   │   ├── horizontal-bar-chart.tsx # Barras horizontais (status de pedidos)
-│   │   └── line-chart.tsx         # Gráfico de linhas com área preenchida
-│   ├── dashboard-skeleton.tsx     # Skeleton loading com shimmer effect
-│   ├── layout-shell.tsx           # Shell do layout (sidebar + content)
-│   ├── sidebar.tsx                # Navegação lateral colapsável
-│   ├── sidebar-context.tsx        # Contexto do sidebar (estado collapsed)
-│   ├── header.tsx                 # Cabeçalho com título da página
-│   ├── modal.tsx                  # Modal reutilizável
-│   └── stats-card.tsx             # Card de KPI com hover animado
-├── produtos/
-│   ├── page.tsx             # Listagem com busca e filtros
-│   ├── novo/page.tsx        # Formulário de criação
-│   └── [id]/page.tsx        # Formulário de edição
-├── categorias/              # Página de categorias
-├── movimentacoes/           # Página de movimentações
-├── fornecedores/            # Página de fornecedores
-├── compras/                 # Página de ordens de compra
-├── recebimento/             # Página de recebimento
-│   ├── actions.ts           # Server Actions para processar recebimento
-│   └── page.tsx             # Interface de conferência cega
-├── contas-a-pagar/          # Página de contas a pagar
-├── clientes/                # Página de clientes
-├── pedidos/                 # Página de pedidos de venda
-├── contas-a-receber/        # Página de contas a receber
-├── page.tsx                 # Dashboard (KPIs, gráficos, filtros)
-├── layout.tsx               # Layout principal (sidebar + header + content)
-└── globals.css              # Design tokens, animações (shimmer, fadeInUp)
+│   ├── charts/              # LineChart, BarChart, DonutChart, HorizontalBarChart (SVG puro)
+│   └── dashboard/           # KPISection, ChartsSection, LowStockList, RecentMovements
+├── produtos/                # Listagem, criação (/novo), edição (/[id])
+├── categorias/
+├── movimentacoes/
+├── fornecedores/
+├── compras/
+├── recebimento/
+├── contas-a-pagar/
+├── clientes/
+├── pedidos/
+├── contas-a-receber/
+├── usuarios/
+├── page.tsx                 # Dashboard (Server Component)
+└── globals.css              # Design tokens e animações CSS
 lib/
-├── prisma.ts                # Singleton do Prisma Client
-└── utils.ts                 # Utilitários (formatCurrency, formatDate)
+├── prisma.ts                # Singleton PrismaClient com PrismaPg adapter
+├── dashboard-data.ts        # Queries do dashboard (raw SQL com CAST para PostgreSQL)
+├── audit.ts                 # Extensão Prisma para audit logging automático
+├── logger.ts                # Logger de erros com webhook
+├── auth.ts                  # Configuração NextAuth
+├── schemas.ts               # Schemas Zod de validação
+├── types.ts                 # Tipos TypeScript globais
+└── utils.ts                 # formatCurrency, formatDate, formatDayMonth
 prisma/
-├── schema.prisma            # 12 modelos de dados
-└── seed.ts                  # Dados de demonstração (configurável via SEED_MONTHS)
+├── schema.prisma            # 15+ modelos (PostgreSQL provider)
+├── seed.ts                  # Dados de demonstração configurável
+└── migrations/              # Histórico de migrations PostgreSQL
 ```
 
 ---
 
-## Dados de Demonstração (Seed)
+## Dados de Demonstração
 
-O seed popula o banco com dados realistas distribuídos ao longo de um período configurável (`SEED_MONTHS`, padrão: 6 meses).
+O seed gera dados realistas com distribuição cronológica:
 
-Os registros são distribuídos cronologicamente:
+```bash
+# Sintaxe
+pnpm exec tsx prisma/seed.ts [MESES]
 
-- Registros mais antigos aparecem como pagos/recebidos
-- Registros mais recentes ficam como pendentes
-- A quantidade de registros escala proporcionalmente ao período
+# Exemplos
+pnpm exec tsx prisma/seed.ts 1   # último mês
+pnpm exec tsx prisma/seed.ts 6   # últimos 6 meses (padrão)
+pnpm exec tsx prisma/seed.ts 12  # último ano
+pnpm exec tsx prisma/seed.ts 24  # últimos 2 anos
+```
 
-| Entidade         | Quantidade base (6 meses)                               |
-| ---------------- | ------------------------------------------------------- |
-| Categorias       | 5 (Eletrônicos, Móveis, Roupas, Alimentos, Ferramentas) |
-| Produtos         | 15 (com SKUs, preços e quantidades variadas)            |
-| Fornecedores     | 4                                                       |
-| Clientes         | 4                                                       |
-| Ordens de Compra | ~12 (escala com SEED_MONTHS)                            |
-| Pedidos de Venda | ~18 (escala com SEED_MONTHS)                            |
-| Movimentações    | Geradas automaticamente por recebimentos e faturamentos |
-| Contas a Pagar   | Geradas automaticamente por recebimentos                |
-| Contas a Receber | Geradas automaticamente por faturamentos                |
+**Volumes gerados (para 12 meses):**
+
+| Entidade                 | Quantidade |
+| ------------------------ | ---------- |
+| Utilizador admin         | 1          |
+| Categorias               | 8          |
+| Produtos                 | 60         |
+| Fornecedores             | 12         |
+| Clientes                 | 30         |
+| Ordens de Compra         | ~48        |
+| Pedidos de Venda         | ~120       |
+| Movimentações de Estoque | ~170+      |
+| Contas Bancárias         | 3          |
+| Transações Bancárias     | ~96        |
+| Registros de Auditoria   | ~228       |
+
+---
+
+## Produção
+
+Para produção, substitua o PostgreSQL local por um serviço gerenciado:
+
+- **[Neon](https://neon.tech/)** — PostgreSQL serverless (free tier disponível)
+- **[Supabase](https://supabase.com/)** — PostgreSQL com extras (free tier disponível)
+- **[Vercel Postgres](https://vercel.com/storage/postgres)** — Integração nativa com Vercel
+
+Basta alterar a variável `DATABASE_URL` no painel de environment variables do seu serviço de deploy.
+
+```env
+DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
+```

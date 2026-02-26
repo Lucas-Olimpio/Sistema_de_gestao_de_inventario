@@ -402,7 +402,8 @@ export const ModelName = {
   OrderStatusHistory: 'OrderStatusHistory',
   AuditLog: 'AuditLog',
   BankAccount: 'BankAccount',
-  Transaction: 'Transaction'
+  Transaction: 'Transaction',
+  SystemError: 'SystemError'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -418,7 +419,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "category" | "product" | "stockMovement" | "supplier" | "purchaseOrder" | "purchaseOrderItem" | "goodsReceipt" | "goodsReceiptItem" | "accountsPayable" | "customer" | "salesOrder" | "salesOrderItem" | "accountsReceivable" | "installment" | "orderStatusHistory" | "auditLog" | "bankAccount" | "transaction"
+    modelProps: "user" | "category" | "product" | "stockMovement" | "supplier" | "purchaseOrder" | "purchaseOrderItem" | "goodsReceipt" | "goodsReceiptItem" | "accountsPayable" | "customer" | "salesOrder" | "salesOrderItem" | "accountsReceivable" | "installment" | "orderStatusHistory" | "auditLog" | "bankAccount" | "transaction" | "systemError"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1828,6 +1829,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    SystemError: {
+      payload: Prisma.$SystemErrorPayload<ExtArgs>
+      fields: Prisma.SystemErrorFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SystemErrorFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemErrorPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SystemErrorFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemErrorPayload>
+        }
+        findFirst: {
+          args: Prisma.SystemErrorFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemErrorPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SystemErrorFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemErrorPayload>
+        }
+        findMany: {
+          args: Prisma.SystemErrorFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemErrorPayload>[]
+        }
+        create: {
+          args: Prisma.SystemErrorCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemErrorPayload>
+        }
+        createMany: {
+          args: Prisma.SystemErrorCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SystemErrorCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemErrorPayload>[]
+        }
+        delete: {
+          args: Prisma.SystemErrorDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemErrorPayload>
+        }
+        update: {
+          args: Prisma.SystemErrorUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemErrorPayload>
+        }
+        deleteMany: {
+          args: Prisma.SystemErrorDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SystemErrorUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SystemErrorUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemErrorPayload>[]
+        }
+        upsert: {
+          args: Prisma.SystemErrorUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SystemErrorPayload>
+        }
+        aggregate: {
+          args: Prisma.SystemErrorAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSystemError>
+        }
+        groupBy: {
+          args: Prisma.SystemErrorGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SystemErrorGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SystemErrorCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SystemErrorCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1858,6 +1933,9 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
  */
 
 export const TransactionIsolationLevel = runtime.makeStrictEnum({
+  ReadUncommitted: 'ReadUncommitted',
+  ReadCommitted: 'ReadCommitted',
+  RepeatableRead: 'RepeatableRead',
   Serializable: 'Serializable'
 } as const)
 
@@ -2115,12 +2193,32 @@ export const TransactionScalarFieldEnum = {
 export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
 
 
+export const SystemErrorScalarFieldEnum = {
+  id: 'id',
+  path: 'path',
+  message: 'message',
+  stackTrace: 'stackTrace',
+  payload: 'payload',
+  createdAt: 'createdAt'
+} as const
+
+export type SystemErrorScalarFieldEnum = (typeof SystemErrorScalarFieldEnum)[keyof typeof SystemErrorScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
+} as const
+
+export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
 
 
 export const NullsOrder = {
@@ -2145,9 +2243,23 @@ export type StringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 
 
 
 /**
+ * Reference to a field of type 'String[]'
+ */
+export type ListStringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'String[]'>
+    
+
+
+/**
  * Reference to a field of type 'Role'
  */
 export type EnumRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Role'>
+    
+
+
+/**
+ * Reference to a field of type 'Role[]'
+ */
+export type ListEnumRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Role[]'>
     
 
 
@@ -2166,9 +2278,23 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
 
 
 /**
+ * Reference to a field of type 'DateTime[]'
+ */
+export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
+    
+
+
+/**
  * Reference to a field of type 'Decimal'
  */
 export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
+    
+
+
+/**
+ * Reference to a field of type 'Decimal[]'
+ */
+export type ListDecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal[]'>
     
 
 
@@ -2180,9 +2306,23 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
 
 
 /**
+ * Reference to a field of type 'Int[]'
+ */
+export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+    
+
+
+/**
+ * Reference to a field of type 'Float[]'
+ */
+export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
     
 
 /**
@@ -2299,6 +2439,7 @@ export type GlobalOmitConfig = {
   auditLog?: Prisma.AuditLogOmit
   bankAccount?: Prisma.BankAccountOmit
   transaction?: Prisma.TransactionOmit
+  systemError?: Prisma.SystemErrorOmit
 }
 
 /* Types for Logging */

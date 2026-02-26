@@ -594,6 +594,7 @@ export type PurchaseOrderCreateOrConnectWithoutSupplierInput = {
 
 export type PurchaseOrderCreateManySupplierInputEnvelope = {
   data: Prisma.PurchaseOrderCreateManySupplierInput | Prisma.PurchaseOrderCreateManySupplierInput[]
+  skipDuplicates?: boolean
 }
 
 export type PurchaseOrderUpsertWithWhereUniqueWithoutSupplierInput = {
@@ -1686,6 +1687,7 @@ export type PurchaseOrderCreateManyArgs<ExtArgs extends runtime.Types.Extensions
    * The data used to create many PurchaseOrders.
    */
   data: Prisma.PurchaseOrderCreateManyInput | Prisma.PurchaseOrderCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
@@ -1704,6 +1706,7 @@ export type PurchaseOrderCreateManyAndReturnArgs<ExtArgs extends runtime.Types.E
    * The data used to create many PurchaseOrders.
    */
   data: Prisma.PurchaseOrderCreateManyInput | Prisma.PurchaseOrderCreateManyInput[]
+  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */

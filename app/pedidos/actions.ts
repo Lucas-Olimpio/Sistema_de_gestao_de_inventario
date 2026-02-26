@@ -4,10 +4,19 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { salesOrderSchema } from "@/lib/schemas";
+import { auth } from "@/lib/auth";
 
 export async function createSalesOrderAction(
   data: z.infer<typeof salesOrderSchema>,
 ) {
+  const session = await auth();
+  if (session?.user?.role === "VISUALIZADOR") {
+    return {
+      success: false,
+      message: "Acesso negado: Visualizadores não podem registrar pedidos.",
+    };
+  }
+
   const validatedFields = salesOrderSchema.safeParse(data);
 
   if (!validatedFields.success) {
@@ -77,9 +86,6 @@ export async function createSalesOrderAction(
       } catch (error: any) {
         // Unique constraint violation on `code` → retry
         if (error.code === "P2002" && error.meta?.target?.includes("code")) {
-          console.log(
-            `Race condition on order code. Retrying attempt ${attempt}...`,
-          );
           continue;
         }
         throw error;
@@ -101,6 +107,14 @@ export async function createSalesOrderAction(
 }
 
 export async function updateSalesOrderStatusAction(id: string, status: string) {
+  const session = await auth();
+  if (session?.user?.role === "VISUALIZADOR") {
+    return {
+      success: false,
+      message: "Acesso negado: Visualizadores não podem atualizar pedidos.",
+    };
+  }
+
   try {
     const order = await prisma.salesOrder.findUnique({
       where: { id },
@@ -232,6 +246,14 @@ export async function updateSalesOrderStatusAction(id: string, status: string) {
 }
 
 export async function deleteSalesOrderAction(id: string) {
+  const session = await auth();
+  if (session?.user?.role === "VISUALIZADOR") {
+    return {
+      success: false,
+      message: "Acesso negado: Visualizadores não podem excluir pedidos.",
+    };
+  }
+
   try {
     const order = await prisma.salesOrder.findUnique({
       where: { id },

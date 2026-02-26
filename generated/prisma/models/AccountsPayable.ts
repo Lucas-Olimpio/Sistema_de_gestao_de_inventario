@@ -1213,6 +1213,7 @@ export type AccountsPayableCreateManyArgs<ExtArgs extends runtime.Types.Extensio
    * The data used to create many AccountsPayables.
    */
   data: Prisma.AccountsPayableCreateManyInput | Prisma.AccountsPayableCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
@@ -1231,6 +1232,7 @@ export type AccountsPayableCreateManyAndReturnArgs<ExtArgs extends runtime.Types
    * The data used to create many AccountsPayables.
    */
   data: Prisma.AccountsPayableCreateManyInput | Prisma.AccountsPayableCreateManyInput[]
+  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */

@@ -474,6 +474,7 @@ export type SalesOrderItemCreateOrConnectWithoutProductInput = {
 
 export type SalesOrderItemCreateManyProductInputEnvelope = {
   data: Prisma.SalesOrderItemCreateManyProductInput | Prisma.SalesOrderItemCreateManyProductInput[]
+  skipDuplicates?: boolean
 }
 
 export type SalesOrderItemUpsertWithWhereUniqueWithoutProductInput = {
@@ -524,6 +525,7 @@ export type SalesOrderItemCreateOrConnectWithoutSalesOrderInput = {
 
 export type SalesOrderItemCreateManySalesOrderInputEnvelope = {
   data: Prisma.SalesOrderItemCreateManySalesOrderInput | Prisma.SalesOrderItemCreateManySalesOrderInput[]
+  skipDuplicates?: boolean
 }
 
 export type SalesOrderItemUpsertWithWhereUniqueWithoutSalesOrderInput = {
@@ -1323,6 +1325,7 @@ export type SalesOrderItemCreateManyArgs<ExtArgs extends runtime.Types.Extension
    * The data used to create many SalesOrderItems.
    */
   data: Prisma.SalesOrderItemCreateManyInput | Prisma.SalesOrderItemCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
@@ -1341,6 +1344,7 @@ export type SalesOrderItemCreateManyAndReturnArgs<ExtArgs extends runtime.Types.
    * The data used to create many SalesOrderItems.
    */
   data: Prisma.SalesOrderItemCreateManyInput | Prisma.SalesOrderItemCreateManyInput[]
+  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */

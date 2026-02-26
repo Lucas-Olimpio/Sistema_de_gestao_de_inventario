@@ -1165,6 +1165,7 @@ export type BankAccountCreateManyArgs<ExtArgs extends runtime.Types.Extensions.I
    * The data used to create many BankAccounts.
    */
   data: Prisma.BankAccountCreateManyInput | Prisma.BankAccountCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
@@ -1183,6 +1184,7 @@ export type BankAccountCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Ext
    * The data used to create many BankAccounts.
    */
   data: Prisma.BankAccountCreateManyInput | Prisma.BankAccountCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**

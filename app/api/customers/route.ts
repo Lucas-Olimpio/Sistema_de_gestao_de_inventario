@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 
 export async function GET(request: Request) {
   try {
@@ -12,9 +13,9 @@ export async function GET(request: Request) {
           search
             ? {
                 OR: [
-                  { name: { contains: search } },
-                  { cpfCnpj: { contains: search } },
-                  { email: { contains: search } },
+                  { name: { contains: search, mode: "insensitive" } },
+                  { cpfCnpj: { contains: search, mode: "insensitive" } },
+                  { email: { contains: search, mode: "insensitive" } },
                 ],
               }
             : {},
@@ -36,6 +37,13 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const session = await auth();
+    if (session?.user?.role === "VISUALIZADOR") {
+      return NextResponse.json(
+        { error: "Acesso negado: Visualizadores não podem criar clientes." },
+        { status: 403 },
+      );
+    }
     const body = await request.json();
     const { name, cpfCnpj, email, phone, address } = body;
 

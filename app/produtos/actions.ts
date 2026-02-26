@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { productSchema } from "@/lib/schemas";
 import { z } from "zod";
+import { auth } from "@/lib/auth";
 
 export type State = {
   errors?: {
@@ -20,7 +21,18 @@ export type State = {
   success?: boolean;
 };
 
-export async function createProduct(prevState: State, formData: FormData) {
+export async function createProduct(
+  prevState: State,
+  formData: FormData,
+): Promise<State> {
+  const session = await auth();
+  if (session?.user?.role === "VISUALIZADOR") {
+    return {
+      success: false,
+      message: "Acesso negado: Visualizadores não podem criar produtos.",
+    };
+  }
+
   const validatedFields = productSchema.safeParse({
     name: formData.get("name"),
     sku: formData.get("sku"),
@@ -80,7 +92,15 @@ export async function updateProduct(
   id: string,
   prevState: State,
   formData: FormData,
-) {
+): Promise<State> {
+  const session = await auth();
+  if (session?.user?.role === "VISUALIZADOR") {
+    return {
+      success: false,
+      message: "Acesso negado: Visualizadores não podem editar produtos.",
+    };
+  }
+
   const validatedFields = productSchema.safeParse({
     name: formData.get("name"),
     sku: formData.get("sku"),
@@ -163,6 +183,14 @@ export async function updateProduct(
 }
 
 export async function deleteProduct(id: string) {
+  const session = await auth();
+  if (session?.user?.role === "VISUALIZADOR") {
+    return {
+      success: false,
+      message: "Acesso negado: Visualizadores não podem remover produtos.",
+    };
+  }
+
   try {
     // Atomic soft-delete: read + update in a single transaction
     await prisma.$transaction(async (tx) => {

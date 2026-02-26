@@ -22,7 +22,11 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(product);
+    return NextResponse.json({
+      ...product,
+      price: Number(product.price),
+      costPrice: Number(product.costPrice),
+    });
   } catch (error) {
     console.error("Error fetching product:", error);
     return NextResponse.json(

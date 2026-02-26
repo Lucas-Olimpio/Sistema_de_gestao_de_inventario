@@ -472,6 +472,7 @@ export type AccountsReceivableCreateOrConnectWithoutSalesOrderInput = {
 
 export type AccountsReceivableCreateManySalesOrderInputEnvelope = {
   data: Prisma.AccountsReceivableCreateManySalesOrderInput | Prisma.AccountsReceivableCreateManySalesOrderInput[]
+  skipDuplicates?: boolean
 }
 
 export type AccountsReceivableUpsertWithWhereUniqueWithoutSalesOrderInput = {
@@ -1268,6 +1269,7 @@ export type AccountsReceivableCreateManyArgs<ExtArgs extends runtime.Types.Exten
    * The data used to create many AccountsReceivables.
    */
   data: Prisma.AccountsReceivableCreateManyInput | Prisma.AccountsReceivableCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
@@ -1286,6 +1288,7 @@ export type AccountsReceivableCreateManyAndReturnArgs<ExtArgs extends runtime.Ty
    * The data used to create many AccountsReceivables.
    */
   data: Prisma.AccountsReceivableCreateManyInput | Prisma.AccountsReceivableCreateManyInput[]
+  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */
