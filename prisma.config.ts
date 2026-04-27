@@ -6,9 +6,4 @@ export default defineConfig({
   datasource: {
     url: process.env.DATABASE_URL!,
   },
-  migrate: {
-    async datasourceUrl() {
-      return process.env.DATABASE_URL!;
-    },
-  },
 });

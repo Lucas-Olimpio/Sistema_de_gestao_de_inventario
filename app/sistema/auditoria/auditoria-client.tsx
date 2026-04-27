@@ -217,7 +217,7 @@ export default function AuditoriaClient({ isViewer }: { isViewer: boolean }) {
         )}
       </AnimSection>
 
-      <Modal max="800px" isOpen={!!selectedLog} onClose={() => setSelectedLog(null)} title={`Detalhes do Registro`}>
+      <Modal maxWidth="800px" isOpen={!!selectedLog} onClose={() => setSelectedLog(null)} title={`Detalhes do Registro`}>
         {selectedLog && (
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>

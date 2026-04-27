@@ -123,7 +123,7 @@ export default function ArmazensClient({ isViewer }: { isViewer: boolean }) {
         />
       </AnimSection>
 
-      <Modal max="450px" isOpen={showModal} onClose={() => !saving && setShowModal(false)} title="Novo Armazém">
+      <Modal maxWidth="450px" isOpen={showModal} onClose={() => !saving && setShowModal(false)} title="Novo Armazém">
         <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <div>
             <label className="label">Nome da Filial/Armazém *</label>
