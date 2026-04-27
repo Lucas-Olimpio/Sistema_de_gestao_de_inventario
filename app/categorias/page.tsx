@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Plus, Edit2, Trash2, Tags, Package } from "lucide-react";
+import { useSession } from "next-auth/react";
 import Modal from "../components/modal";
 import PageHeader from "../components/page-header";
 import DataTable, { Column } from "../components/data-table";
@@ -12,6 +13,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Category } from "@/lib/types";
 
 export default function CategoriasPage() {
+  const { data: session } = useSession();
+  const isViewer = (session?.user as any)?.role === "VISUALIZADOR";
   const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
@@ -123,10 +126,10 @@ export default function CategoriasPage() {
         </div>
       ),
     },
-    {
+    ...(!isViewer ? [{
       header: "Ações",
-      align: "right",
-      cell: (cat) => (
+      align: "right" as const,
+      cell: (cat: Category) => (
         <div
           style={{ display: "flex", gap: "6px", justifyContent: "flex-end" }}
         >
@@ -166,7 +169,7 @@ export default function CategoriasPage() {
           </button>
         </div>
       ),
-    },
+    }] : []),
   ];
 
   return (
@@ -176,27 +179,29 @@ export default function CategoriasPage() {
         subtitle={`Gerencie as categorias de produtos (${categories.length})`}
         icon={Tags}
         action={
-          <button
-            onClick={openCreate}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              padding: "10px 18px",
-              borderRadius: "var(--radius-md)",
-              background:
-                "linear-gradient(135deg, var(--accent-primary), #a855f7)",
-              color: "white",
-              fontSize: "13px",
-              fontWeight: 600,
-              border: "none",
-              cursor: "pointer",
-              boxShadow: "0 2px 8px rgba(99, 102, 241, 0.3)",
-            }}
-          >
-            <Plus size={18} />
-            Nova Categoria
-          </button>
+          !isViewer ? (
+            <button
+              onClick={openCreate}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "10px 18px",
+                borderRadius: "var(--radius-md)",
+                background:
+                  "linear-gradient(135deg, var(--accent-primary), #a855f7)",
+                color: "white",
+                fontSize: "13px",
+                fontWeight: 600,
+                border: "none",
+                cursor: "pointer",
+                boxShadow: "0 2px 8px rgba(99, 102, 241, 0.3)",
+              }}
+            >
+              <Plus size={18} />
+              Nova Categoria
+            </button>
+          ) : undefined
         }
       />
 

@@ -13,20 +13,50 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const productId = searchParams.get("productId") || "";
+    const search = searchParams.get("search") || "";
+    const type = searchParams.get("type") || "";
+    const dateFrom = searchParams.get("dateFrom") || "";
+    const dateTo = searchParams.get("dateTo") || "";
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
+    const limit = Math.min(100, parseInt(searchParams.get("limit") || "20"));
+    const skip = (page - 1) * limit;
 
     const where: Record<string, unknown> = {};
-    if (productId) {
-      where.productId = productId;
+
+    if (productId) where.productId = productId;
+    if (type && ["IN", "OUT"].includes(type)) where.type = type;
+
+    if (search) {
+      where.product = {
+        OR: [
+          { name: { contains: search, mode: "insensitive" } },
+          { sku: { contains: search, mode: "insensitive" } },
+        ],
+      };
     }
 
-    const movements = await prisma.stockMovement.findMany({
-      where,
-      include: { product: { select: { name: true, sku: true } } },
-      orderBy: { createdAt: "desc" },
-      take: 100,
-    });
+    if (dateFrom || dateTo) {
+      where.createdAt = {
+        ...(dateFrom ? { gte: new Date(dateFrom) } : {}),
+        ...(dateTo ? { lte: new Date(dateTo + "T23:59:59.999Z") } : {}),
+      };
+    }
 
-    return NextResponse.json(movements);
+    const [movements, total] = await Promise.all([
+      prisma.stockMovement.findMany({
+        where,
+        include: { product: { select: { name: true, sku: true } } },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      }),
+      prisma.stockMovement.count({ where }),
+    ]);
+
+    return NextResponse.json({
+      data: movements,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    });
   } catch (error) {
     // Fire-and-forget background execution using Vercel waitUntil
     waitUntil(
@@ -103,14 +133,23 @@ export async function POST(request: Request) {
       );
     }
 
+    const defaultWh = await prisma.warehouse.findFirst();
+    if (!defaultWh) {
+      return NextResponse.json(
+        { error: "Nenhum Armazém cadastrado no sistema." },
+        { status: 500 }
+      );
+    }
+
     // Create movement and update stock in a transaction
     const [movement] = await prisma.$transaction([
       prisma.stockMovement.create({
         data: {
           productId,
+          warehouseId: defaultWh.id,
           type,
           quantity: qty,
-          reason: reason || null,
+          reason,
         },
         include: { product: { select: { name: true, sku: true } } },
       }),
@@ -120,6 +159,11 @@ export async function POST(request: Request) {
           quantity: type === "IN" ? { increment: qty } : { decrement: qty },
         },
       }),
+      prisma.productStock.upsert({
+        where: { productId_warehouseId: { productId, warehouseId: defaultWh.id } },
+        create: { productId, warehouseId: defaultWh.id, quantity: type === "IN" ? qty : 0 },
+        update: { quantity: type === "IN" ? { increment: qty } : { decrement: qty } }
+      })
     ]);
 
     return NextResponse.json(movement, { status: 201 });

@@ -1,12 +1,6 @@
 import React, { useState } from "react";
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
-
-interface Product {
-  id: string;
-  name: string;
-  sku: string;
-  quantity: number;
-}
+import { Product } from "@/lib/types";
 
 interface MovementFormProps {
   products: Product[];
@@ -88,7 +82,7 @@ export default function MovementForm({
           <option value="">Selecione um produto...</option>
           {products.map((p) => (
             <option key={p.id} value={p.id}>
-              {p.name} ({p.sku}) — Estoque: {p.quantity}
+              {p.name} ({p.sku}) — Estoque: {p.quantity || 0}
             </option>
           ))}
         </select>
@@ -173,7 +167,7 @@ export default function MovementForm({
                 marginLeft: "8px",
               }}
             >
-              (Disponível: {selectedProduct.quantity})
+              (Disponível: {selectedProduct.quantity || 0})
             </span>
           )}
         </label>
@@ -183,7 +177,7 @@ export default function MovementForm({
           min="1"
           max={
             form.type === "OUT" && selectedProduct
-              ? selectedProduct.quantity
+              ? selectedProduct.quantity || 0
               : undefined
           }
           value={form.quantity}

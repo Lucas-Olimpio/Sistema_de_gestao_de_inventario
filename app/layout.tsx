@@ -11,7 +11,28 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "InvenPro",
+  title: {
+    default: "InvenPro — Sistema de Gestão de Inventário",
+    template: "%s | InvenPro",
+  },
+  description:
+    "Sistema completo de gestão de inventário com controle de estoque, compras, vendas, contas a pagar e receber, e relatórios financeiros.",
+  keywords: [
+    "gestão de inventário",
+    "controle de estoque",
+    "ERP",
+    "compras",
+    "vendas",
+    "contas a pagar",
+    "contas a receber",
+  ],
+  openGraph: {
+    title: "InvenPro — Sistema de Gestão de Inventário",
+    description:
+      "Gerencie seu estoque, compras, vendas e finanças em um único sistema.",
+    type: "website",
+    locale: "pt_BR",
+  },
 };
 
 export default function RootLayout({

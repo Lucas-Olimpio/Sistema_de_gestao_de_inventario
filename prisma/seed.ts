@@ -15,7 +15,8 @@ const prisma = new PrismaClient({ adapter });
 // ║    1  = último mês                                           ║
 // ║    6  = últimos 6 meses                                      ║
 // ║    12 = último ano                                           ║
-// ║    24 = últimos 2 anos                                       ║
+// ║    24 = últimos 2 anos (anos anteriores + ano atual)         ║
+// ║    36 = últimos 3 anos                                       ║
 // ╚══════════════════════════════════════════════════════════════╝
 
 const args = process.argv.slice(2);
@@ -80,6 +81,8 @@ async function main() {
 
   // Limpar dados existentes
   console.log("🧹 Limpando banco de dados...");
+  await prisma.systemSettings.deleteMany();
+  await prisma.systemError.deleteMany();
   await prisma.transaction.deleteMany();
   await prisma.bankAccount.deleteMany();
   await prisma.auditLog.deleteMany();
@@ -96,12 +99,25 @@ async function main() {
   await prisma.purchaseOrder.deleteMany();
   await prisma.supplier.deleteMany();
   await prisma.stockMovement.deleteMany();
+  await prisma.productStock.deleteMany();
   await prisma.product.deleteMany();
   await prisma.category.deleteMany();
+  await prisma.warehouse.deleteMany();
   await prisma.user.deleteMany();
 
-  // ─── Utilizador Admin ─────────────────────────────────────
-  console.log("🔐 Criando utilizador admin...");
+  // ─── Configurações do Sistema ─────────────────────────────
+  console.log("⚙️  Criando configurações do sistema...");
+  await prisma.systemSettings.create({
+    data: {
+      companyName: "InvenPro - ERP",
+      cnpj: "12.345.678/0001-99",
+      defaultCurrency: "BRL",
+      timezone: "America/Sao_Paulo",
+    }
+  });
+
+  // ─── Utilizadores ─────────────────────────────────────────
+  console.log("🔐 Criando utilizadores...");
   const adminUser = await prisma.user.create({
     data: {
       name: "Administrador",
@@ -110,6 +126,26 @@ async function main() {
       role: "ADMIN",
     },
   });
+
+  const operadorUser = await prisma.user.create({
+    data: {
+      name: "Operador Padrão",
+      email: "operador@invenpro.com",
+      password: hashSync("operador123", 12),
+      role: "OPERADOR",
+    },
+  });
+
+  const visualizadorUser = await prisma.user.create({
+    data: {
+      name: "Visualizador",
+      email: "viewer@invenpro.com",
+      password: hashSync("viewer123", 12),
+      role: "VISUALIZADOR",
+    },
+  });
+
+  const allUsers = [adminUser, operadorUser, visualizadorUser];
 
   // ─── Categorias ────────────────────────────────────────────
   console.log("📂 Criando categorias...");
@@ -129,6 +165,16 @@ async function main() {
       }),
     ),
   );
+
+  // ─── Warehouse ───────────────────────────────────────────
+  console.log("🏢 Criando armazém central...");
+  const mainWarehouse = await prisma.warehouse.create({
+    data: {
+      name: "Estoque Padrão",
+      location: "Sede Logística",
+      isActive: true,
+    }
+  });
 
   // ─── Produtos (FIX #5: Decimal) ───────────────────────────
   console.log("📦 Criando produtos...");
@@ -150,6 +196,15 @@ async function main() {
         categoryId: category.id,
       },
     });
+    
+    await prisma.productStock.create({
+      data: {
+        productId: product.id,
+        warehouseId: mainWarehouse.id,
+        quantity: 0
+      }
+    });
+
     products.push({ ...product, _price: price });
     stockTracker[product.id] = 0;
     costTracker[product.id] = { totalCost: 0, totalQty: 0 };
@@ -174,11 +229,15 @@ async function main() {
   console.log("🏭 Criando fornecedores...");
   const numSuppliers = 12;
   const suppliers = [];
+  const supplierNames = faker.helpers.uniqueArray(
+    () => faker.company.name(),
+    numSuppliers,
+  );
 
   for (let i = 0; i < numSuppliers; i++) {
     const supplier = await prisma.supplier.create({
       data: {
-        name: faker.company.name(),
+        name: supplierNames[i],
         cnpj: faker.string
           .numeric(14)
           .replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5"),
@@ -193,12 +252,20 @@ async function main() {
   console.log("👥 Criando clientes...");
   const numCustomers = 30;
   const customers = [];
+  const customerNames = faker.helpers.uniqueArray(
+    () => (faker.datatype.boolean() ? faker.company.name() : faker.person.fullName()),
+    numCustomers,
+  );
+
+  // Variáveis para sincronizar dados financeiros com bancos
+  const payablesToTransaction: { amount: number; date: Date; referenceId: string; desc: string }[] = [];
+  const receivablesToTransaction: { amount: number; date: Date; referenceId: string; desc: string }[] = [];
 
   for (let i = 0; i < numCustomers; i++) {
-    const isCompany = faker.datatype.boolean();
+    const isCompany = customerNames[i].includes(" ") && faker.datatype.boolean();
     const customer = await prisma.customer.create({
       data: {
-        name: isCompany ? faker.company.name() : faker.person.fullName(),
+        name: customerNames[i],
         cpfCnpj: isCompany
           ? faker.string
               .numeric(14)
@@ -219,7 +286,7 @@ async function main() {
 
   // ─── Gerar Ordens de Compra ─────────────────────────────
   console.log("🛒 Gerando ordens de compra...");
-  const numPOs = Math.max(15, SEED_MONTHS * 4);
+  const numPOs = Math.max(25, SEED_MONTHS * 6); // Aumentado volume
   const poStatuses = [
     "RECEBIDA",
     "RECEBIDA",
@@ -256,10 +323,15 @@ async function main() {
       unitPrice: p._price * randomFloat(0.6, 0.9),
     }));
 
-    const totalValue = items.reduce(
+    const itemsTotal = items.reduce(
       (sum, item) => sum + item.quantity * item.unitPrice,
       0,
     );
+    const hasFreight = faker.datatype.boolean();
+    const hasDiscount = faker.datatype.boolean();
+    const freightAmount = hasFreight ? itemsTotal * randomFloat(0.02, 0.1) : 0;
+    const discountAmount = hasDiscount ? itemsTotal * randomFloat(0.01, 0.05) : 0;
+    const totalValue = itemsTotal + freightAmount - discountAmount;
 
     poCounter++;
     const poCode = `PO-${String(poCounter).padStart(5, "0")}`;
@@ -269,7 +341,9 @@ async function main() {
         code: poCode,
         supplierId: supplier.id,
         status,
-        totalValue: toDecimal(totalValue), // FIX #5
+        totalValue: toDecimal(totalValue),
+        freightAmount: toDecimal(freightAmount),
+        discountAmount: toDecimal(discountAmount),
         notes: faker.lorem.sentence(),
         createdAt: poDate,
         items: {
@@ -361,6 +435,7 @@ async function main() {
         await prisma.stockMovement.create({
           data: {
             productId: item.productId,
+            warehouseId: mainWarehouse.id,
             type: "IN",
             quantity: item.quantity,
             reason: `Recebimento ${po.code}`,
@@ -385,6 +460,12 @@ async function main() {
             costPrice: toDecimal(newCostPrice), // FIX #4 + #5
           },
         });
+        
+        await prisma.productStock.update({
+          where: { productId_warehouseId: { productId: item.productId, warehouseId: mainWarehouse.id } },
+          data: { quantity: { increment: item.quantity } }
+        });
+        
         totalMovements++;
       }
 
@@ -396,23 +477,40 @@ async function main() {
         ? faker.date.between({ from: receiptDate, to: dueDate })
         : null;
 
-      await prisma.accountsPayable.create({
+      const payable = await prisma.accountsPayable.create({
         data: {
           purchaseOrderId: po.id,
           amount: toDecimal(totalValue), // FIX #5
           status: isPaid ? "PAGO" : "PENDENTE",
+          paymentMethod: isPaid
+            ? faker.helpers.arrayElement([
+                "PIX",
+                "BOLETO",
+                "TRANSFER",
+                "MONEY",
+              ])
+            : null,
           dueDate,
           paidAt: isPaid ? paidAt : null,
           createdAt: receiptDate,
         },
       });
+      // Salvar referência paga para gerar a transação depois
+      if (isPaid && paidAt) {
+        payablesToTransaction.push({
+           amount: Number(payable.amount),
+           date: paidAt,
+           referenceId: `AP-${payable.id.substring(0,6)}`,
+           desc: `Pagamento PO-${po.code}`
+        });
+      }
       totalPayables++;
     }
   }
 
   // ─── Gerar Ordens de Venda ─────────────────────────────
   console.log("🛍️  Gerando ordens de venda...");
-  const numSOs = Math.max(30, SEED_MONTHS * 10);
+  const numSOs = Math.max(50, SEED_MONTHS * 15); // Aumentado volume
   const soStatuses = [
     "FATURADA",
     "FATURADA",
@@ -456,10 +554,15 @@ async function main() {
       }
     }
 
-    const totalValue = items.reduce(
+    const itemsTotal = items.reduce(
       (sum, item) => sum + item.quantity * item.unitPrice,
       0,
     );
+    const hasFreight = faker.datatype.boolean();
+    const hasDiscount = faker.datatype.boolean();
+    const freightAmount = hasFreight ? itemsTotal * randomFloat(0.03, 0.15) : 0;
+    const discountAmount = hasDiscount ? itemsTotal * randomFloat(0.02, 0.1) : 0;
+    const totalValue = itemsTotal + freightAmount - discountAmount;
 
     soCounter++;
     const soCode = `VD-${String(soCounter).padStart(5, "0")}`;
@@ -475,11 +578,27 @@ async function main() {
         const dueDate = new Date(soDate);
         dueDate.setMonth(dueDate.getMonth() + k);
 
+        const instPaid = dueDate < new Date() && faker.datatype.boolean();
+        const instPaymentMethod = instPaid
+          ? faker.helpers.arrayElement([
+              "PIX",
+              "CREDIT_CARD",
+              "DEBIT_CARD",
+              "BOLETO",
+              "MONEY",
+              "TRANSFER",
+            ])
+          : null;
+
         installmentsData.push({
           number: k,
           amount: toDecimal(installmentAmount), // FIX #5
           dueDate: dueDate,
-          status: "PENDENTE",
+          status: instPaid ? "PAGO" : "PENDENTE",
+          paymentMethod: instPaymentMethod,
+          paidAt: instPaid
+            ? faker.date.between({ from: soDate, to: dueDate })
+            : null,
         });
       }
     }
@@ -490,6 +609,8 @@ async function main() {
         customerId: customer.id,
         status,
         totalValue: toDecimal(totalValue), // FIX #5
+        freightAmount: toDecimal(freightAmount),
+        discountAmount: toDecimal(discountAmount),
         notes: faker.lorem.sentence(),
         createdAt: soDate,
         items: {
@@ -557,6 +678,7 @@ async function main() {
         await prisma.stockMovement.create({
           data: {
             productId: item.productId,
+            warehouseId: mainWarehouse.id,
             type: "OUT",
             quantity: item.quantity,
             reason: `Venda ${so.code}`,
@@ -571,30 +693,65 @@ async function main() {
           where: { id: item.productId },
           data: { quantity: { decrement: item.quantity } },
         });
+
+        await prisma.productStock.update({
+          where: { productId_warehouseId: { productId: item.productId, warehouseId: mainWarehouse.id } },
+          data: { quantity: { decrement: item.quantity } }
+        });
+
         totalMovements++;
       }
 
       if (installmentsData.length > 0) {
         for (const inst of installmentsData) {
           const isReceived = faker.datatype.boolean();
+          const rcvPaymentMethod = isReceived
+            ? faker.helpers.arrayElement([
+                "PIX",
+                "CREDIT_CARD",
+                "DEBIT_CARD",
+                "BOLETO",
+                "MONEY",
+                "TRANSFER",
+              ])
+            : null;
           const receivedAt = isReceived
             ? faker.date.between({ from: invoiceDate, to: inst.dueDate })
             : null;
 
-          await prisma.accountsReceivable.create({
+          const rec = await prisma.accountsReceivable.create({
             data: {
               salesOrderId: so.id,
               amount: inst.amount,
               status: isReceived ? "RECEBIDO" : "PENDENTE",
+              paymentMethod: rcvPaymentMethod,
               dueDate: inst.dueDate,
               receivedAt: isReceived ? receivedAt : null,
               createdAt: invoiceDate,
             },
           });
+          if (isReceived && receivedAt) {
+             receivablesToTransaction.push({
+               amount: Number(rec.amount),
+               date: receivedAt,
+               referenceId: `AR-${rec.id.substring(0,6)}`,
+               desc: `Recebimento VD-${so.code}`
+             });
+          }
           totalReceivables++;
         }
       } else {
         const isReceived = faker.datatype.boolean();
+        const rcvPaymentMethod = isReceived
+          ? faker.helpers.arrayElement([
+              "PIX",
+              "CREDIT_CARD",
+              "DEBIT_CARD",
+              "BOLETO",
+              "MONEY",
+              "TRANSFER",
+            ])
+          : null;
         const dueDate = new Date(
           invoiceDate.getTime() + 30 * 24 * 60 * 60 * 1000,
         );
@@ -602,16 +759,25 @@ async function main() {
           ? faker.date.between({ from: invoiceDate, to: dueDate })
           : null;
 
-        await prisma.accountsReceivable.create({
+        const rec = await prisma.accountsReceivable.create({
           data: {
             salesOrderId: so.id,
             amount: toDecimal(totalValue), // FIX #5
             status: isReceived ? "RECEBIDO" : "PENDENTE",
+            paymentMethod: rcvPaymentMethod,
             dueDate,
             receivedAt: isReceived ? receivedAt : null,
             createdAt: invoiceDate,
           },
         });
+        if (isReceived && receivedAt) {
+           receivablesToTransaction.push({
+             amount: Number(rec.amount),
+             date: receivedAt,
+             referenceId: `AR-${rec.id.substring(0,6)}`,
+             desc: `Recebimento VD-${so.code}`
+           });
+        }
         totalReceivables++;
       }
     }
@@ -638,6 +804,7 @@ async function main() {
     await prisma.stockMovement.create({
       data: {
         productId: product.id,
+        warehouseId: mainWarehouse.id,
         type: isIn ? "IN" : "OUT",
         quantity: qty,
         reason: faker.helpers.arrayElement(isIn ? inReasons : outReasons),
@@ -657,6 +824,12 @@ async function main() {
         quantity: isIn ? { increment: qty } : { decrement: qty },
       },
     });
+    
+    await prisma.productStock.update({
+      where: { productId_warehouseId: { productId: product.id, warehouseId: mainWarehouse.id } },
+      data: { quantity: isIn ? { increment: qty } : { decrement: qty } },
+    });
+
     totalMovements++;
   }
 
@@ -674,57 +847,129 @@ async function main() {
   ];
 
   const createdBankAccounts = [];
+  const accountBalances: Record<string, number> = {};
+
   for (const ba of bankAccounts) {
     const account = await prisma.bankAccount.create({
       data: {
         name: ba.name,
         bankName: ba.bankName,
         accountNumber: ba.accountNumber,
-        currentBalance: toDecimal(randomFloat(5000, 50000)),
+        currentBalance: 0, // Inicia zerado, atualizado pelas transações
       },
     });
     createdBankAccounts.push(account);
+    accountBalances[account.id] = 0; // Saldo inicial para tracking
   }
 
-  // Generate realistic transactions
-  const numTransactions = Math.max(30, SEED_MONTHS * 8);
-  const txDates = Array.from({ length: numTransactions })
-    .map(() => faker.date.between({ from: start, to: end }))
-    .sort((a, b) => a.getTime() - b.getTime());
+  // Generate realistic transactions linked to actual payables/receivables
+  let transactionCount = 0;
 
-  const creditDescriptions = [
-    "Recebimento de cliente",
-    "Pagamento de fatura",
-    "Receita de venda",
-    "Transferência recebida",
-    "Devolução de fornecedor",
-  ];
-  const debitDescriptions = [
-    "Pagamento a fornecedor",
-    "Despesa operacional",
-    "Salários",
-    "Aluguel",
-    "Conta de energia",
-    "Internet/Telecom",
-    "Material de escritório",
-  ];
-
-  for (let i = 0; i < numTransactions; i++) {
-    const isCredit = faker.datatype.boolean();
-    const account =
-      createdBankAccounts[randomInt(0, createdBankAccounts.length - 1)];
-    const amount = randomFloat(100, 10000);
-
+  // Receitas (Credits)
+  for (const item of receivablesToTransaction) {
+    const account = createdBankAccounts[randomInt(0, createdBankAccounts.length - 1)];
     await prisma.transaction.create({
       data: {
         bankAccountId: account.id,
-        amount: toDecimal(amount),
-        type: isCredit ? "CREDIT" : "DEBIT",
-        description: faker.helpers.arrayElement(
-          isCredit ? creditDescriptions : debitDescriptions,
-        ),
-        referenceId: faker.string.alphanumeric(8),
-        createdAt: txDates[i],
+        amount: toDecimal(item.amount),
+        type: "CREDIT",
+        description: item.desc,
+        referenceId: item.referenceId,
+        createdAt: item.date,
+      },
+    });
+    accountBalances[account.id] += toDecimal(item.amount);
+    transactionCount++;
+  }
+
+  // Despesas (Debits)
+  for (const item of payablesToTransaction) {
+    const account = createdBankAccounts[randomInt(0, createdBankAccounts.length - 1)];
+    await prisma.transaction.create({
+      data: {
+        bankAccountId: account.id,
+        amount: toDecimal(item.amount),
+        type: "DEBIT",
+        description: item.desc,
+        referenceId: item.referenceId,
+        createdAt: item.date,
+      },
+    });
+    accountBalances[account.id] -= toDecimal(item.amount);
+    transactionCount++;
+  }
+
+  // Atualiza o saldo final de cada conta bancária
+  for (const acc of createdBankAccounts) {
+    // Dá um "boost" inicial aleatório para a conta não ficar muito negativa se houve mais compras que vendas
+    const startingCapital = toDecimal(randomFloat(10000, 50000));
+    const finalBalance = startingCapital + accountBalances[acc.id];
+    
+    await prisma.transaction.create({
+      data: {
+        bankAccountId: acc.id,
+        amount: startingCapital,
+        type: "CREDIT",
+        description: "Saldo Inicial / Aporte",
+        referenceId: "APORTE-INI",
+        createdAt: start,
+      },
+    });
+    transactionCount++;
+
+    await prisma.bankAccount.update({
+      where: { id: acc.id },
+      data: { currentBalance: finalBalance },
+    });
+  }
+
+  // ─── Erros de Sistema (SystemError) ────────────────────────
+  console.log("🐛 Gerando erros de sistema...");
+  const numSystemErrors = Math.max(10, SEED_MONTHS * 3);
+  const errorPaths = [
+    "/api/movements",
+    "/api/products",
+    "/api/sales-orders",
+    "/api/purchase-orders",
+    "/api/suppliers",
+    "/api/customers",
+    "/api/bank-accounts",
+    "/api/reports",
+    "/api/auth",
+    "/api/export",
+  ];
+  const errorMessages = [
+    "Cannot read properties of undefined (reading 'id')",
+    "Unique constraint violation on field: sku",
+    "Connection timeout after 30000ms",
+    "Invalid input: expected number, received string",
+    "Foreign key constraint failed on the field: categoryId",
+    "Request body too large",
+    "JWT token expired",
+    "Rate limit exceeded",
+    "Database connection pool exhausted",
+    "Decimal precision overflow",
+    "ECONNREFUSED 127.0.0.1:5432",
+    "Prisma query timeout exceeded",
+  ];
+
+  for (let i = 0; i < numSystemErrors; i++) {
+    const errorDate = faker.date.between({ from: start, to: end });
+    const errorPath = faker.helpers.arrayElement(errorPaths);
+    const errorMessage = faker.helpers.arrayElement(errorMessages);
+
+    await prisma.systemError.create({
+      data: {
+        path: errorPath,
+        message: errorMessage,
+        stackTrace: `Error: ${errorMessage}\n    at handler (${errorPath}/route.ts:${randomInt(10, 200)}:${randomInt(5, 40)})\n    at processRequest (node_modules/next/dist/server.js:${randomInt(100, 500)}:${randomInt(5, 30)})`,
+        payload: faker.datatype.boolean()
+          ? JSON.stringify({
+              method: faker.helpers.arrayElement(["GET", "POST", "PUT", "DELETE"]),
+              body: { id: faker.string.alphanumeric(25) },
+            })
+          : null,
+        createdAt: errorDate,
       },
     });
   }
@@ -734,7 +979,7 @@ async function main() {
   console.log(
     `  📅 Período: ${start.toLocaleDateString()} a ${end.toLocaleDateString()}`,
   );
-  console.log(`  🔐 1 utilizador admin`);
+  console.log(`  🔐 ${allUsers.length} utilizadores (admin, operador, visualizador)`);
   console.log(`  📦 ${numCategories} categorias`);
   console.log(`  📋 ${numProducts} produtos base`);
   console.log(`  🏭 ${numSuppliers} fornecedores`);
@@ -744,8 +989,11 @@ async function main() {
   console.log(`  📊 ${totalMovements} movimentações de estoque`);
   console.log(`  📜 ${totalStatusHistory} registros de histórico de status`);
   console.log(`  📝 ${totalAuditLogs} registros de auditoria`);
+  console.log(`  💰 ${totalPayables} contas a pagar`);
+  console.log(`  💵 ${totalReceivables} contas a receber`);
   console.log(`  🏦 ${createdBankAccounts.length} contas bancárias`);
-  console.log(`  💳 ${numTransactions} transações bancárias`);
+  console.log(`  💳 ${transactionCount} transações bancárias sincronizadas`);
+  console.log(`  🐛 ${numSystemErrors} erros de sistema`);
   if (skippedFaturada > 0) {
     console.log(
       `  ⚠️  ${skippedFaturada} pedidos rebaixados de FATURADA → APROVADA (estoque insuficiente)`,
@@ -755,7 +1003,11 @@ async function main() {
 
 main()
   .catch((e) => {
-    console.error(JSON.stringify(e, null, 2));
+    console.error("❌ Erro no seed:");
+    console.error("Message:", e?.message);
+    console.error("Code:", e?.code);
+    console.error("Meta:", JSON.stringify(e?.meta, null, 2));
+    console.error("Stack:", e?.stack);
     process.exit(1);
   })
   .finally(async () => {

@@ -5,6 +5,11 @@ import { auth } from "@/lib/auth";
 
 export async function GET(request: Request) {
   try {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status") || "";
 
@@ -71,23 +76,25 @@ export async function POST(request: Request) {
       );
     }
 
-    const { supplierId, notes, items } = validatedData.data;
+    const { supplierId, notes, items, discountAmount = 0, freightAmount = 0 } = validatedData.data;
 
     // Generate next PO code
     const lastPO = await prisma.purchaseOrder.findFirst({
       orderBy: { code: "desc" },
       select: { code: true },
     });
-    const nextNumber = lastPO
-      ? parseInt(lastPO.code.replace("PO-", "")) + 1
-      : 1;
+    let nextNumber = 1;
+    if (lastPO) {
+      const match = lastPO.code.match(/PO-(\d+)/);
+      if (match) nextNumber = parseInt(match[1]) + 1;
+    }
     const code = `PO-${String(nextNumber).padStart(4, "0")}`;
 
-    // Calculate total (items already transformed to cents by schema)
-    const totalValue = items.reduce(
+    const itemsTotal = items.reduce(
       (sum: number, item: any) => sum + item.quantity * item.unitPrice,
       0,
     );
+    const totalValue = Math.max(0, itemsTotal + freightAmount - discountAmount);
 
     const order = await prisma.purchaseOrder.create({
       data: {
@@ -95,6 +102,8 @@ export async function POST(request: Request) {
         supplierId,
         notes: notes || null,
         totalValue,
+        discountAmount,
+        freightAmount,
         items: {
           create: items.map((item) => ({
             productId: item.productId,

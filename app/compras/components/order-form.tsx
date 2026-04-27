@@ -22,6 +22,8 @@ export default function OrderForm({
   const [form, setForm] = useState({
     supplierId: "",
     notes: "",
+    discountAmount: "",
+    freightAmount: "",
   });
   const [items, setItems] = useState<
     Array<{ productId: string; quantity: string; unitPrice: string }>
@@ -49,11 +51,13 @@ export default function OrderForm({
     setItems(updated);
   };
 
-  const formTotal = items.reduce((sum, item) => {
+  const itemsTotal = items.reduce((sum, item) => {
     const qty = parseFloat(item.quantity) || 0;
     const price = parseFloat(item.unitPrice) || 0;
     return sum + qty * price;
   }, 0);
+
+  const formTotal = Math.max(0, itemsTotal + (parseFloat(form.freightAmount) || 0) - (parseFloat(form.discountAmount) || 0));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -231,6 +235,27 @@ export default function OrderForm({
               </button>
             </div>
           ))}
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+        <div>
+          <label style={labelStyle}>Desconto Total (R$)</label>
+          <input
+            type="number" min="0" step="0.01" placeholder="0.00"
+            value={form.discountAmount}
+            onChange={(e) => setForm({ ...form, discountAmount: e.target.value })}
+            style={inputStyle}
+          />
+        </div>
+        <div>
+          <label style={labelStyle}>Frete (R$)</label>
+          <input
+            type="number" min="0" step="0.01" placeholder="0.00"
+            value={form.freightAmount}
+            onChange={(e) => setForm({ ...form, freightAmount: e.target.value })}
+            style={inputStyle}
+          />
         </div>
       </div>
 

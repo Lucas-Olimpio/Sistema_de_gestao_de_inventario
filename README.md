@@ -92,13 +92,13 @@ O InvenPro é um sistema ERP simplificado que gerencia o **ciclo completo** de u
 ### 🛒 Compras
 
 - **Fornecedores**: CRUD com CNPJ único
-- **Ordens de Compra**: código sequencial, fluxo de status com histórico
+- **Ordens de Compra**: código sequencial, fretes e descontos, fluxo de status com histórico
 - **Recebimento**: conferência cega, divergências, custo médio ponderado, contas a pagar automáticas
 
 ### 🛍️ Vendas
 
 - **Clientes**: CRUD com CPF/CNPJ único
-- **Pedidos de Venda**: código sequencial, parcelamento, faturamento com baixa de estoque
+- **Pedidos de Venda**: código sequencial, parcelamento, fretes e descontos, faturamento com baixa de estoque
 - **Contas a Receber**: geradas automaticamente ao faturar
 
 ### 👥 Utilizadores
@@ -277,6 +277,7 @@ pnpm exec tsx prisma/seed.ts 24  # últimos 2 anos
 | Entidade                 | Quantidade |
 | ------------------------ | ---------- |
 | Utilizador admin         | 1          |
+| Configurações de Sistema | 1          |
 | Categorias               | 8          |
 | Produtos                 | 60         |
 | Fornecedores             | 12         |

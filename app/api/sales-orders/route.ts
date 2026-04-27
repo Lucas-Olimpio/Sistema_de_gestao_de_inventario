@@ -5,6 +5,11 @@ import { auth } from "@/lib/auth";
 
 export async function GET(request: Request) {
   try {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
 
@@ -72,7 +77,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { customerId, notes, items } = validatedData.data;
+    const { customerId, notes, items, discountAmount = 0, freightAmount = 0 } = validatedData.data;
 
     // Generate sequential code
     const lastOrder = await prisma.salesOrder.findFirst({
@@ -87,11 +92,11 @@ export async function POST(request: Request) {
     }
     const code = `VD-${String(nextNumber).padStart(4, "0")}`;
 
-    // Calculate total (items already transformed to cents by schema)
-    const totalValue = items.reduce(
+    const itemsTotal = items.reduce(
       (sum: number, item: any) => sum + item.quantity * item.unitPrice,
       0,
     );
+    const totalValue = Math.max(0, itemsTotal + freightAmount - discountAmount);
 
     const order = await prisma.salesOrder.create({
       data: {
@@ -99,6 +104,8 @@ export async function POST(request: Request) {
         customerId,
         notes: notes || null,
         totalValue,
+        discountAmount,
+        freightAmount,
         items: {
           create: items.map((item) => ({
             productId: item.productId,

@@ -4,6 +4,11 @@ import { auth } from "@/lib/auth";
 
 export async function GET() {
   try {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
     const categories = await prisma.category.findMany({
       where: { deletedAt: null },
       include: { _count: { select: { products: true } } },

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { Plus, Users, Pencil, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { useSession } from "next-auth/react";
 import Modal from "../components/modal";
 import PageHeader from "../components/page-header";
 import DataTable, { Column } from "../components/data-table";
@@ -11,6 +13,8 @@ import { Supplier } from "@/lib/types";
 import { useSuppliers } from "@/app/hooks/use-suppliers";
 
 export default function FornecedoresPage() {
+  const { data: session } = useSession();
+  const isViewer = (session?.user as any)?.role === "VISUALIZADOR";
   const [modalOpen, setModalOpen] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<Supplier | undefined>(
     undefined,
@@ -43,8 +47,9 @@ export default function FornecedoresPage() {
     try {
       await deleteSupplier.mutateAsync(deleteId);
       setDeleteId(null);
-    } catch (err: any) {
-      alert(err.message || "Erro ao excluir");
+      toast.success("Fornecedor excluído com sucesso!");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Erro ao excluir");
     }
   };
 
@@ -57,8 +62,8 @@ export default function FornecedoresPage() {
         await createSupplier.mutateAsync(data);
       }
       setModalOpen(false);
-    } catch (err: any) {
-      setError(err.message || "Erro ao salvar");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Erro ao salvar");
     }
   };
 
@@ -111,10 +116,11 @@ export default function FornecedoresPage() {
         </span>
       ),
     },
+    ...(!isViewer ? [
     {
       header: "Ações",
-      align: "right",
-      cell: (s) => (
+      align: "right" as const,
+      cell: (s: Supplier) => (
         <div
           style={{ display: "flex", gap: "6px", justifyContent: "flex-end" }}
         >
@@ -154,7 +160,7 @@ export default function FornecedoresPage() {
           </button>
         </div>
       ),
-    },
+    }] : []),
   ];
 
   return (
@@ -164,27 +170,29 @@ export default function FornecedoresPage() {
         subtitle="Gerencie os fornecedores do sistema"
         icon={Users}
         action={
-          <button
-            onClick={openCreate}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              padding: "10px 18px",
-              borderRadius: "var(--radius-md)",
-              background:
-                "linear-gradient(135deg, var(--accent-primary), #a855f7)",
-              color: "white",
-              fontSize: "13px",
-              fontWeight: 600,
-              border: "none",
-              cursor: "pointer",
-              boxShadow: "0 2px 8px rgba(99, 102, 241, 0.3)",
-            }}
-          >
-            <Plus size={18} />
-            Novo Fornecedor
-          </button>
+          !isViewer ? (
+            <button
+              onClick={openCreate}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "10px 18px",
+                borderRadius: "var(--radius-md)",
+                background:
+                  "linear-gradient(135deg, var(--accent-primary), #a855f7)",
+                color: "white",
+                fontSize: "13px",
+                fontWeight: 600,
+                border: "none",
+                cursor: "pointer",
+                boxShadow: "0 2px 8px rgba(99, 102, 241, 0.3)",
+              }}
+            >
+              <Plus size={18} />
+              Novo Fornecedor
+            </button>
+          ) : undefined
         }
       />
 

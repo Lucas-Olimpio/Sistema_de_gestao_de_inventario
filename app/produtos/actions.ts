@@ -64,16 +64,30 @@ export async function createProduct(
       };
     }
 
-    await prisma.product.create({
-      data: {
-        name,
-        sku,
-        description,
-        price,
-        quantity,
-        minStock,
-        categoryId,
-      },
+    const defaultWh = await prisma.warehouse.findFirst();
+
+    await prisma.$transaction(async (tx) => {
+      const p = await tx.product.create({
+        data: {
+          name,
+          sku,
+          description,
+          price,
+          quantity,
+          minStock,
+          categoryId,
+        },
+      });
+
+      if (defaultWh) {
+        await tx.productStock.create({
+          data: {
+            productId: p.id,
+            warehouseId: defaultWh.id,
+            quantity: quantity,
+          }
+        });
+      }
     });
   } catch (error) {
     return {
@@ -156,14 +170,25 @@ export async function updateProduct(
       // If quantity changed, create a stock adjustment movement for traceability
       const diff = quantity - current.quantity;
       if (diff !== 0) {
-        await tx.stockMovement.create({
-          data: {
-            productId: id,
-            type: diff > 0 ? "IN" : "OUT",
-            quantity: Math.abs(diff),
-            reason: "Ajuste manual de estoque",
-          },
-        });
+        const defaultWh = await tx.warehouse.findFirst();
+        
+        if (defaultWh) {
+          await tx.stockMovement.create({
+            data: {
+              productId: id,
+              warehouseId: defaultWh.id,
+              type: diff > 0 ? "IN" : "OUT",
+              quantity: Math.abs(diff),
+              reason: "Ajuste manual de estoque",
+            },
+          });
+
+          await tx.productStock.upsert({
+            where: { productId_warehouseId: { productId: id, warehouseId: defaultWh.id } },
+            create: { productId: id, warehouseId: defaultWh.id, quantity: quantity },
+            update: { quantity: quantity }
+          });
+        }
       }
     });
   } catch (error: any) {

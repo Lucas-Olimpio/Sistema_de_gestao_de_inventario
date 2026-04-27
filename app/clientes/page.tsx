@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { Plus, UserCheck, Pencil, Trash2, Search } from "lucide-react";
+import { toast } from "sonner";
+import { useSession } from "next-auth/react";
 import Modal from "../components/modal";
 import PageHeader from "../components/page-header";
 import DataTable, { Column } from "../components/data-table";
@@ -11,6 +13,8 @@ import { Customer } from "@/lib/types";
 import { useCustomers } from "@/app/hooks/use-customers";
 
 export default function ClientesPage() {
+  const { data: session } = useSession();
+  const isViewer = (session?.user as any)?.role === "VISUALIZADOR";
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | undefined>(
@@ -44,8 +48,8 @@ export default function ClientesPage() {
     try {
       await deleteCustomer.mutateAsync(deleteId);
       setDeleteId(null);
-    } catch (err: any) {
-      alert(err.message || "Erro ao excluir");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Erro ao excluir");
     }
   };
 
@@ -58,8 +62,8 @@ export default function ClientesPage() {
         await createCustomer.mutateAsync(data);
       }
       setModalOpen(false);
-    } catch (err: any) {
-      setError(err.message || "Erro ao salvar");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Erro ao salvar");
     }
   };
 
@@ -112,10 +116,11 @@ export default function ClientesPage() {
         </span>
       ),
     },
+    ...(!isViewer ? [
     {
       header: "Ações",
-      align: "right",
-      cell: (c) => (
+      align: "right" as const,
+      cell: (c: Customer) => (
         <div
           style={{ display: "flex", gap: "6px", justifyContent: "flex-end" }}
         >
@@ -155,7 +160,7 @@ export default function ClientesPage() {
           </button>
         </div>
       ),
-    },
+    }] : []),
   ];
 
   return (

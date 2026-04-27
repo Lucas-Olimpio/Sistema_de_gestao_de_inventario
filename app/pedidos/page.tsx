@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { Plus, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
+import { useSession } from "next-auth/react";
 import Modal from "../components/modal";
+import ConfirmModal from "../components/confirm-modal";
 import PageHeader from "@/app/components/page-header";
 import OrderTable from "./components/order-table";
 import OrderForm from "./components/order-form";
@@ -15,9 +17,12 @@ import { SalesOrder } from "@/lib/types";
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function PedidosPage() {
+  const { data: session } = useSession();
+  const isViewer = (session?.user as any)?.role === "VISUALIZADOR";
   const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
   const [detailOrder, setDetailOrder] = useState<SalesOrder | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
@@ -74,10 +79,11 @@ export default function PedidosPage() {
     }
   };
 
-  const deleteOrder = async (id: string) => {
-    if (!confirm("Excluir este pedido de venda?")) return;
-    const res = await fetch(`/api/sales-orders/${id}`, { method: "DELETE" });
+  const handleDeleteConfirm = async () => {
+    if (!deleteId) return;
+    const res = await fetch(`/api/sales-orders/${deleteId}`, { method: "DELETE" });
     if (res.ok) {
+      setDeleteId(null);
       queryClient.invalidateQueries({ queryKey: ["sales-orders"] });
       toast.success("Pedido excluído com sucesso!");
     } else {
@@ -112,30 +118,32 @@ export default function PedidosPage() {
               <option value="FATURADA">Faturada</option>
               <option value="CANCELADA">Cancelada</option>
             </select>
-            <button
-              onClick={() => {
-                setError("");
-                setModalOpen(true);
-              }}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "10px 18px",
-                borderRadius: "var(--radius-md)",
-                background:
-                  "linear-gradient(135deg, var(--accent-primary), #a855f7)",
-                color: "white",
-                fontSize: "13px",
-                fontWeight: 600,
-                border: "none",
-                cursor: "pointer",
-                boxShadow: "0 2px 8px rgba(99, 102, 241, 0.3)",
-              }}
-            >
-              <Plus size={18} />
-              Novo Pedido
-            </button>
+            {!isViewer && (
+              <button
+                onClick={() => {
+                  setError("");
+                  setModalOpen(true);
+                }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "10px 18px",
+                  borderRadius: "var(--radius-md)",
+                  background:
+                    "linear-gradient(135deg, var(--accent-primary), #a855f7)",
+                  color: "white",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  border: "none",
+                  cursor: "pointer",
+                  boxShadow: "0 2px 8px rgba(99, 102, 241, 0.3)",
+                }}
+              >
+                <Plus size={18} />
+                Novo Pedido
+              </button>
+            )}
           </div>
         }
       />
@@ -145,7 +153,7 @@ export default function PedidosPage() {
         loading={loadingOrders}
         onView={setDetailOrder}
         onUpdateStatus={updateStatus}
-        onDelete={deleteOrder}
+        onDelete={(id) => setDeleteId(id)}
       />
 
       <Modal
@@ -166,6 +174,16 @@ export default function PedidosPage() {
       <OrderDetailModal
         order={detailOrder}
         onClose={() => setDetailOrder(null)}
+      />
+
+      <ConfirmModal
+        isOpen={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        onConfirm={handleDeleteConfirm}
+        title="Excluir Pedido de Venda"
+        message="Tem certeza que deseja excluir este pedido? Esta ação não pode ser desfeita."
+        isDestructive
+        confirmText="Excluir"
       />
     </div>
   );

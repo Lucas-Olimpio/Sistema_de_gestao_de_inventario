@@ -1,47 +1,46 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { HandCoins, CheckCircle } from "lucide-react";
+import { useState } from "react";
+import { HandCoins, CheckCircle, Search } from "lucide-react";
+import { toast } from "sonner";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import PageHeader from "../components/page-header";
 import StatsCard from "../components/stats-card";
 import AnimSection from "../components/anim-section";
 import DataTable, { Column } from "../components/data-table";
 import StatusBadge from "../components/status-badge";
+import ConfirmModal from "../components/confirm-modal";
 import { Receivable } from "@/lib/types";
 import ExportButton from "../components/export-button";
+import { useReceivables } from "@/app/hooks/use-receivables";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function ContasAReceberClient({
   isViewer,
 }: {
   isViewer: boolean;
 }) {
-  const [receivables, setReceivables] = useState<Receivable[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const [receiveConfirmId, setReceiveConfirmId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
 
-  const fetchReceivables = async () => {
-    const res = await fetch("/api/accounts-receivable");
-    const data = await res.json();
-    setReceivables(data);
-    setLoading(false);
-  };
+  const { data: receivables = [], isLoading } = useReceivables({ status: statusFilter, search });
 
-  useEffect(() => {
-    fetchReceivables();
-  }, []);
-
-  const markAsReceived = async (id: string) => {
-    if (!confirm("Confirmar recebimento desta conta?")) return;
+  const handleReceiveConfirm = async () => {
+    if (!receiveConfirmId) return;
     const res = await fetch("/api/accounts-receivable", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
+      body: JSON.stringify({ id: receiveConfirmId }),
     });
     if (res.ok) {
-      fetchReceivables();
+      setReceiveConfirmId(null);
+      queryClient.invalidateQueries({ queryKey: ["receivables"] });
+      toast.success("Conta marcada como recebida!");
     } else {
       const data = await res.json();
-      alert(data.error || "Erro ao marcar como recebido");
+      toast.error(data.error || "Erro ao marcar como recebido");
     }
   };
 
@@ -111,7 +110,7 @@ export default function ContasAReceberClient({
         !isViewer && (
           <div style={{ display: "flex", justifyContent: "flex-end" }}>
             <button
-              onClick={() => markAsReceived(r.id)}
+              onClick={() => setReceiveConfirmId(r.id)}
               title="Marcar como Recebido"
               style={{
                 display: "flex",
@@ -168,13 +167,59 @@ export default function ContasAReceberClient({
       </AnimSection>
 
       <AnimSection delay={200}>
+        {/* Filter bar */}
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+            alignItems: "center",
+            flexWrap: "wrap",
+            marginBottom: "16px",
+          }}
+        >
+          <div className="search-box" style={{ flex: 1, minWidth: "180px" }}>
+            <Search size={15} color="var(--text-muted)" />
+            <input placeholder="Buscar cliente..." value={search} onChange={(e) => setSearch(e.target.value)} />
+          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            style={{
+              padding: "9px 12px",
+              borderRadius: "var(--radius-md)",
+              border: "1px solid var(--border-color)",
+              background: "var(--bg-input)",
+              color: "var(--text-primary)",
+              fontSize: "13px",
+              cursor: "pointer",
+            }}
+          >
+            <option value="">Todos os status</option>
+            <option value="PENDENTE">Pendente</option>
+            <option value="RECEBIDO">Recebido</option>
+          </select>
+          {(search || statusFilter) && (
+            <button className="btn-ghost" style={{ padding: "7px 12px", fontSize: "12px" }} onClick={() => { setSearch(""); setStatusFilter(""); }}>
+              Limpar
+            </button>
+          )}
+        </div>
         <DataTable
           data={receivables}
           columns={columns}
-          isLoading={loading}
+          isLoading={isLoading}
           emptyMessage="Nenhuma conta a receber registrada"
         />
       </AnimSection>
+
+      <ConfirmModal
+        isOpen={!!receiveConfirmId}
+        onClose={() => setReceiveConfirmId(null)}
+        onConfirm={handleReceiveConfirm}
+        title="Confirmar Recebimento"
+        message="Tem certeza que deseja marcar esta conta como recebida?"
+        confirmText="Confirmar Recebimento"
+      />
     </div>
   );
 }

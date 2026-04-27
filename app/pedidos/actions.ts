@@ -141,6 +141,12 @@ export async function updateSalesOrderStatusAction(id: string, status: string) {
     // FATURADA: deduct stock + create receivables
     if (status === "FATURADA") {
       await prisma.$transaction(async (tx) => {
+        // Get default warehouse for stock movements
+        const defaultWh = await tx.warehouse.findFirst();
+        if (!defaultWh) {
+          throw new Error("Nenhum Armazém cadastrado no sistema.");
+        }
+
         await tx.salesOrder.update({
           where: { id },
           data: { status: "FATURADA" },
@@ -182,9 +188,28 @@ export async function updateSalesOrderStatusAction(id: string, status: string) {
           await tx.stockMovement.create({
             data: {
               productId: item.productId,
+              warehouseId: defaultWh.id,
               type: "OUT",
               quantity: item.quantity,
               reason: `Venda ${order.code}`,
+            },
+          });
+
+          // Keep ProductStock in sync
+          await tx.productStock.upsert({
+            where: {
+              productId_warehouseId: {
+                productId: item.productId,
+                warehouseId: defaultWh.id,
+              },
+            },
+            create: {
+              productId: item.productId,
+              warehouseId: defaultWh.id,
+              quantity: 0,
+            },
+            update: {
+              quantity: { decrement: item.quantity },
             },
           });
         }

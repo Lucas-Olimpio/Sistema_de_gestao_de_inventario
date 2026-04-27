@@ -45,6 +45,13 @@ model Product {
   costPrice          Decimal             @default(0)
   quantity           Int                 @default(0)
   minStock           Int                 @default(5)
+  stocks             ProductStock[]
+  
+  // Variações de Produto (Parent-Child)
+  parentId           String?
+  parent             Product?            @relation("ProductVariants", fields: [parentId], references: [id])
+  variants           Product[]           @relation("ProductVariants")
+
   categoryId         String
   category           Category            @relation(fields: [categoryId], references: [id])
   movements          StockMovement[]
@@ -56,12 +63,38 @@ model Product {
   deletedAt          DateTime?
 }
 
+model Warehouse {
+  id        String          @id @default(cuid())
+  name      String          @unique
+  location  String?
+  isActive  Boolean         @default(true)
+  stocks    ProductStock[]
+  movements StockMovement[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+}
+
+model ProductStock {
+  id          String    @id @default(cuid())
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  warehouseId String
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  quantity    Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([productId, warehouseId])
+}
+
 model StockMovement {
   id        String   @id @default(cuid())
-  productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  type      String // "IN" or "OUT"
-  quantity  Int
+  productId   String
+  product     Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  warehouseId String
+  warehouse   Warehouse  @relation(fields: [warehouseId], references: [id])
+  type        String // "IN", "OUT", "TRANSFER"
+  quantity    Int
   reason    String?
   createdAt DateTime @default(now())
 }
@@ -87,6 +120,8 @@ model PurchaseOrder {
   supplier      Supplier           @relation(fields: [supplierId], references: [id])
   status        String             @default("PENDENTE")
   totalValue    Decimal            @default(0)
+  discountAmount Decimal           @default(0)
+  freightAmount Decimal            @default(0)
   notes         String?
   items         PurchaseOrderItem[]
   goodsReceipts GoodsReceipt[]
@@ -128,14 +163,15 @@ model GoodsReceiptItem {
 }
 
 model AccountsPayable {
-  id              String        @id @default(cuid())
-  purchaseOrderId String        @unique
-  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+  id              String         @id @default(cuid())
+  purchaseOrderId String         @unique
+  purchaseOrder   PurchaseOrder  @relation(fields: [purchaseOrderId], references: [id])
   amount          Decimal
-  status          String        @default("PENDENTE")
+  status          String         @default("PENDENTE")
+  paymentMethod   PaymentMethod?
   dueDate         DateTime?
   paidAt          DateTime?
-  createdAt       DateTime      @default(now())
+  createdAt       DateTime       @default(now())
 }
 
 // ─── Sales Module ──────────────────────────────────────────
@@ -160,6 +196,8 @@ model SalesOrder {
   customer     Customer            @relation(fields: [customerId], references: [id])
   status       String              @default("PENDENTE")
   totalValue   Decimal             @default(0)
+  discountAmount Decimal           @default(0)
+  freightAmount Decimal            @default(0)
   notes        String?
   items        SalesOrderItem[]
   installments Installment[]
@@ -180,26 +218,28 @@ model SalesOrderItem {
 }
 
 model AccountsReceivable {
-  id           String     @id @default(cuid())
-  salesOrderId String
-  salesOrder   SalesOrder @relation(fields: [salesOrderId], references: [id])
-  amount       Decimal
-  status       String     @default("PENDENTE")
-  dueDate      DateTime?
-  receivedAt   DateTime?
-  createdAt    DateTime   @default(now())
+  id            String         @id @default(cuid())
+  salesOrderId  String
+  salesOrder    SalesOrder     @relation(fields: [salesOrderId], references: [id])
+  amount        Decimal
+  status        String         @default("PENDENTE")
+  paymentMethod PaymentMethod?
+  dueDate       DateTime?
+  receivedAt    DateTime?
+  createdAt     DateTime       @default(now())
 }
 
 model Installment {
-  id           String     @id @default(cuid())
-  salesOrderId String
-  salesOrder   SalesOrder @relation(fields: [salesOrderId], references: [id], onDelete: Cascade)
-  number       Int
-  amount       Decimal
-  dueDate      DateTime
-  status       String     @default("PENDENTE")
-  paidAt       DateTime?
-  createdAt    DateTime   @default(now())
+  id            String         @id @default(cuid())
+  salesOrderId  String
+  salesOrder    SalesOrder     @relation(fields: [salesOrderId], references: [id], onDelete: Cascade)
+  number        Int
+  amount        Decimal
+  dueDate       DateTime
+  status        String         @default("PENDENTE")
+  paymentMethod PaymentMethod?
+  paidAt        DateTime?
+  createdAt     DateTime       @default(now())
 }
 
 // ─── Financial & Audit ──────────────────────────────────────
@@ -263,4 +303,16 @@ model SystemError {
   stackTrace String?
   payload    String?
   createdAt  DateTime @default(now())
+}
+
+// ─── Settings ─────────────────────────────────────────────
+
+model SystemSettings {
+  id              String   @id @default(cuid())
+  companyName     String   @default("InvenPro")
+  cnpj            String?
+  logoUrl         String?
+  defaultCurrency String   @default("BRL")
+  timezone        String   @default("America/Sao_Paulo")
+  updatedAt       DateTime @updatedAt
 }

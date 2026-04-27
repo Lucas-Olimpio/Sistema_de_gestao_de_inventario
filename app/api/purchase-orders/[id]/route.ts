@@ -36,7 +36,22 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(order);
+    // Serialize Decimal fields to Number for JSON safety
+    const safeOrder = {
+      ...order,
+      totalValue: Number(order.totalValue),
+      discountAmount: Number(order.discountAmount),
+      freightAmount: Number(order.freightAmount),
+      items: order.items.map((item) => ({
+        ...item,
+        unitPrice: Number(item.unitPrice),
+      })),
+      payable: order.payable
+        ? { ...order.payable, amount: Number(order.payable.amount) }
+        : null,
+    };
+
+    return NextResponse.json(safeOrder);
   } catch (error) {
     console.error("Error fetching purchase order:", error);
     return NextResponse.json(

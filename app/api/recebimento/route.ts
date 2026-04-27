@@ -108,6 +108,12 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await prisma.$transaction(async (tx) => {
+      // Get default warehouse for stock movements
+      const defaultWh = await tx.warehouse.findFirst();
+      if (!defaultWh) {
+        throw new Error("Nenhum Armazém cadastrado no sistema.");
+      }
+
       const receipt = await tx.goodsReceipt.create({
         data: {
           purchaseOrderId,
@@ -177,9 +183,28 @@ export async function POST(req: NextRequest) {
         await tx.stockMovement.create({
           data: {
             productId: update.productId,
+            warehouseId: defaultWh.id,
             type: "IN",
             quantity: update.receivedQty,
             reason: update.reason,
+          },
+        });
+
+        // Keep ProductStock in sync with Product
+        await tx.productStock.upsert({
+          where: {
+            productId_warehouseId: {
+              productId: update.productId,
+              warehouseId: defaultWh.id,
+            },
+          },
+          create: {
+            productId: update.productId,
+            warehouseId: defaultWh.id,
+            quantity: update.receivedQty,
+          },
+          update: {
+            quantity: { increment: update.receivedQty },
           },
         });
       }

@@ -1,6 +1,14 @@
 import "dotenv/config";
+import { defineConfig } from "prisma/config";
 
-// Configuration options for Prisma
-export const prismaConfig = {
-  datasourceUrl: process.env.DATABASE_URL!,
-};
+export default defineConfig({
+  schema: "./prisma/schema.prisma",
+  datasource: {
+    url: process.env.DATABASE_URL!,
+  },
+  migrate: {
+    async datasourceUrl() {
+      return process.env.DATABASE_URL!;
+    },
+  },
+});

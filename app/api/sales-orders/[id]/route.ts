@@ -26,7 +26,23 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(order);
+    // Serialize Decimal fields to Number for JSON safety
+    const safeOrder = {
+      ...order,
+      totalValue: Number(order.totalValue),
+      discountAmount: Number(order.discountAmount),
+      freightAmount: Number(order.freightAmount),
+      items: order.items.map((item) => ({
+        ...item,
+        unitPrice: Number(item.unitPrice),
+      })),
+      receivables: order.receivables.map((r) => ({
+        ...r,
+        amount: Number(r.amount),
+      })),
+    };
+
+    return NextResponse.json(safeOrder);
   } catch (error) {
     console.error("Error fetching sales order:", error);
     return NextResponse.json(
@@ -101,6 +117,15 @@ export async function PUT(
         }
       }
 
+      // Get default warehouse for stock movements
+      const defaultWh = await prisma.warehouse.findFirst();
+      if (!defaultWh) {
+        return NextResponse.json(
+          { error: "Nenhum Armazém cadastrado no sistema." },
+          { status: 500 },
+        );
+      }
+
       const operations = [];
 
       // 1. Update order status
@@ -111,7 +136,7 @@ export async function PUT(
         }),
       );
 
-      // 2. Decrease stock + create OUT movements
+      // 2. Decrease stock + create OUT movements + update ProductStock
       for (const item of order.items) {
         operations.push(
           prisma.product.update({
@@ -126,9 +151,28 @@ export async function PUT(
           prisma.stockMovement.create({
             data: {
               productId: item.productId,
+              warehouseId: defaultWh.id,
               type: "OUT",
               quantity: item.quantity,
               reason: `Venda ${order.code}`,
+            },
+          }),
+        );
+        operations.push(
+          prisma.productStock.upsert({
+            where: {
+              productId_warehouseId: {
+                productId: item.productId,
+                warehouseId: defaultWh.id,
+              },
+            },
+            create: {
+              productId: item.productId,
+              warehouseId: defaultWh.id,
+              quantity: 0,
+            },
+            update: {
+              quantity: { decrement: item.quantity },
             },
           }),
         );
@@ -216,7 +260,11 @@ export async function DELETE(
       );
     }
 
-    await prisma.salesOrder.delete({ where: { id } });
+    // Soft delete to preserve data integrity
+    await prisma.salesOrder.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting sales order:", error);

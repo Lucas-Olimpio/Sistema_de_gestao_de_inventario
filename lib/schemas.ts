@@ -6,7 +6,6 @@ export const productSchema = z.object({
   sku: z.string().min(1, "O SKU é obrigatório"),
   price: z.coerce
     .number()
-    .min(0.01, "O preço deve ser maior que 0")
     .min(0.01, "O preço deve ser maior que 0"),
   quantity: z.coerce
     .number()
@@ -35,7 +34,6 @@ export const orderItemSchema = z.object({
   quantity: z.coerce.number().int().min(1, "Quantidade deve ser pelo menos 1"),
   unitPrice: z.coerce
     .number()
-    .min(0.01, "Preço unitário inválido")
     .min(0.01, "Preço unitário inválido"),
 });
 
@@ -50,6 +48,8 @@ export const salesOrderSchema = z.object({
   items: z.array(orderItemSchema).min(1, "Adicione pelo menos um item"),
   notes: z.string().optional(),
   installments: z.array(installmentSchema).optional(),
+  discountAmount: z.coerce.number().min(0).optional().default(0),
+  freightAmount: z.coerce.number().min(0).optional().default(0),
 });
 
 export type ProductSchema = z.infer<typeof productSchema>;
@@ -58,4 +58,6 @@ export const purchaseOrderSchema = z.object({
   supplierId: z.string().uuid("Selecione um fornecedor"),
   items: z.array(orderItemSchema).min(1, "Adicione pelo menos um item"),
   notes: z.string().optional(),
+  discountAmount: z.coerce.number().min(0).optional().default(0),
+  freightAmount: z.coerce.number().min(0).optional().default(0),
 });

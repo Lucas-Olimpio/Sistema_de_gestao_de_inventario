@@ -147,6 +147,43 @@ export interface DashboardData {
   };
   purchaseOrdersByStatus: Record<string, number>;
   salesOrdersByStatus: Record<string, number>;
+  /** % change vs previous period (null if no previous data) */
+  kpiTrends: {
+    movements: number | null;
+    purchases: number | null;
+    sales: number | null;
+    balance: number | null;
+  };
+  /** Mini sparkline data for financial cards — net movement per day */
+  financialSparkline: Array<{ date: string; purchases: number; sales: number }>;
+}
+
+export type PaymentMethodType =
+  | "MONEY"
+  | "PIX"
+  | "CREDIT_CARD"
+  | "DEBIT_CARD"
+  | "BOLETO"
+  | "TRANSFER";
+
+export interface BankAccount {
+  id: string;
+  name: string;
+  bankName?: string | null;
+  accountNumber?: string | null;
+  currentBalance: number;
+  _count?: { transactions: number };
+}
+
+export interface Transaction {
+  id: string;
+  bankAccountId: string;
+  bankAccount?: { name: string };
+  amount: number;
+  type: "CREDIT" | "DEBIT";
+  description?: string | null;
+  referenceId?: string | null;
+  createdAt: string | Date;
 }
 
 export interface PaginatedResponse<T> {

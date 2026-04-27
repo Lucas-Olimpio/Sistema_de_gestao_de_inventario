@@ -30,15 +30,59 @@ export default function DataTable<T extends { id?: string }>({
     return (
       <div
         style={{
-          padding: "40px",
-          textAlign: "center",
-          color: "var(--text-muted)",
           background: "var(--bg-card)",
           borderRadius: "var(--radius-lg)",
           border: "1px solid var(--border-color)",
+          overflow: "hidden",
         }}
       >
-        Carregando...
+        {/* Skeleton header */}
+        <div
+          style={{
+            display: "flex",
+            gap: "16px",
+            padding: "12px 16px",
+            borderBottom: "1px solid var(--border-color)",
+            background: "var(--bg-input)",
+          }}
+        >
+          {columns.map((_, i) => (
+            <div
+              key={i}
+              className="skeleton"
+              style={{
+                height: "12px",
+                flex: i === 0 ? 2 : 1,
+                borderRadius: "4px",
+              }}
+            />
+          ))}
+        </div>
+        {/* Skeleton rows */}
+        {Array.from({ length: 5 }).map((_, rowIndex) => (
+          <div
+            key={rowIndex}
+            style={{
+              display: "flex",
+              gap: "16px",
+              padding: "14px 16px",
+              borderBottom: "1px solid var(--border-color)",
+            }}
+          >
+            {columns.map((_, colIndex) => (
+              <div
+                key={colIndex}
+                className="skeleton"
+                style={{
+                  height: "14px",
+                  flex: colIndex === 0 ? 2 : 1,
+                  borderRadius: "4px",
+                  opacity: 1 - rowIndex * 0.12,
+                }}
+              />
+            ))}
+          </div>
+        ))}
       </div>
     );
   }

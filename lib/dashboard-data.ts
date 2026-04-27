@@ -2,6 +2,28 @@ import { prisma } from "@/lib/prisma";
 import { DashboardData } from "@/lib/types";
 import { Prisma } from "@prisma/client";
 
+/** Returns % change rounded to 1dp, or null if there is no previous data */
+function calcTrend(current: number, previous: number): number | null {
+  if (previous === 0) return null;
+  return Math.round(((current - previous) / previous) * 100);
+}
+
+/** Given a current [from, to] window, returns the same-duration window just before it */
+function previousPeriod(
+  from: string,
+  to: string,
+): { prevFrom: string; prevTo: string } {
+  const start = new Date(from);
+  const end = new Date(to);
+  const durationMs = end.getTime() - start.getTime() + 86_400_000; // inclusive
+  const prevTo = new Date(start.getTime() - 1);
+  const prevFrom = new Date(prevTo.getTime() - durationMs + 1);
+  return {
+    prevFrom: prevFrom.toISOString().split("T")[0],
+    prevTo: prevTo.toISOString().split("T")[0],
+  };
+}
+
 export async function getDashboardData(
   from?: string,
   to?: string,
@@ -183,6 +205,116 @@ export async function getDashboardData(
     salesOrdersByStatus[so.status] = so._count.status;
   });
 
+  // ─── Previous-period comparison (for KPI trend arrows) ──────────────────────
+  let kpiTrends: DashboardData["kpiTrends"] = {
+    movements: null,
+    purchases: null,
+    sales: null,
+    balance: null,
+  };
+  let financialSparkline: DashboardData["financialSparkline"] = [];
+
+  if (from && to) {
+    const { prevFrom, prevTo } = previousPeriod(from, to);
+    const prevDateFilter = {
+      createdAt: {
+        gte: new Date(prevFrom),
+        lte: new Date(prevTo + "T23:59:59.999Z"),
+      },
+    };
+
+    const [prevIn, prevOut, prevPayables, prevReceivables] = await Promise.all([
+      prisma.stockMovement.aggregate({
+        where: { ...prevDateFilter, type: "IN" },
+        _sum: { quantity: true },
+      }),
+      prisma.stockMovement.aggregate({
+        where: { ...prevDateFilter, type: "OUT" },
+        _sum: { quantity: true },
+      }),
+      prisma.accountsPayable.groupBy({
+        by: ["status"],
+        where: prevDateFilter,
+        _sum: { amount: true },
+      }),
+      prisma.accountsReceivable.groupBy({
+        by: ["status"],
+        where: prevDateFilter,
+        _sum: { amount: true },
+      }),
+    ]);
+
+    const prevTotalMov =
+      (prevIn._sum.quantity ?? 0) + (prevOut._sum.quantity ?? 0);
+    const prevTotalPayable = prevPayables.reduce(
+      (a, c) => a + Number(c._sum.amount ?? 0),
+      0,
+    );
+    const prevTotalReceivable = prevReceivables.reduce(
+      (a, c) => a + Number(c._sum.amount ?? 0),
+      0,
+    );
+    const prevTotalPaid = prevPayables
+      .filter((p) => p.status === "PAGO")
+      .reduce((a, c) => a + Number(c._sum.amount ?? 0), 0);
+    const prevTotalReceived = prevReceivables
+      .filter((r) => r.status === "RECEBIDO")
+      .reduce((a, c) => a + Number(c._sum.amount ?? 0), 0);
+    const prevBalance = prevTotalReceived - prevTotalPaid;
+
+    kpiTrends = {
+      movements: calcTrend(totalIn + totalOut, prevTotalMov),
+      purchases: calcTrend(totalPayable, prevTotalPayable),
+      sales: calcTrend(totalReceivable, prevTotalReceivable),
+      balance: calcTrend(
+        totalReceived - totalPaid,
+        prevBalance,
+      ),
+    };
+
+    // ── Financial sparkline: payables + receivables per-day ──────────────────
+    let spkCondition = Prisma.sql`WHERE 1=1`;
+    const spkStart = new Date(from);
+    const spkEnd = new Date(to);
+    spkEnd.setUTCHours(23, 59, 59, 999);
+    spkCondition = Prisma.sql`WHERE "createdAt" >= ${spkStart.toISOString()}::timestamptz AND "createdAt" <= ${spkEnd.toISOString()}::timestamptz`;
+
+    const [paySparkRaw, recSparkRaw] = await Promise.all([
+      prisma.$queryRaw<Array<{ date: string; total: number }>>`
+        SELECT TO_CHAR("createdAt"::date, 'YYYY-MM-DD') as date,
+               CAST(COALESCE(SUM(amount), 0) AS NUMERIC) as total
+        FROM "AccountsPayable"
+        ${spkCondition}
+        GROUP BY "createdAt"::date
+        ORDER BY "createdAt"::date ASC
+      `,
+      prisma.$queryRaw<Array<{ date: string; total: number }>>`
+        SELECT TO_CHAR("createdAt"::date, 'YYYY-MM-DD') as date,
+               CAST(COALESCE(SUM(amount), 0) AS NUMERIC) as total
+        FROM "AccountsReceivable"
+        ${spkCondition}
+        GROUP BY "createdAt"::date
+        ORDER BY "createdAt"::date ASC
+      `,
+    ]);
+
+    // Merge into unified date array
+    const spkMap = new Map<string, { purchases: number; sales: number }>();
+    paySparkRaw.forEach((r) => {
+      const e = spkMap.get(r.date) ?? { purchases: 0, sales: 0 };
+      e.purchases = Number(r.total);
+      spkMap.set(r.date, e);
+    });
+    recSparkRaw.forEach((r) => {
+      const e = spkMap.get(r.date) ?? { purchases: 0, sales: 0 };
+      e.sales = Number(r.total);
+      spkMap.set(r.date, e);
+    });
+    financialSparkline = Array.from(spkMap.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([date, v]) => ({ date, ...v }));
+  }
+
   return {
     totalProducts,
     totalValue,
@@ -206,7 +338,10 @@ export async function getDashboardData(
       totalReceived,
       balance: totalReceived - totalPaid,
     },
-    purchaseOrdersByStatus: purchaseOrdersByStatus,
-    salesOrdersByStatus: salesOrdersByStatus,
+    purchaseOrdersByStatus,
+    salesOrdersByStatus,
+    kpiTrends,
+    financialSparkline,
   };
 }
+

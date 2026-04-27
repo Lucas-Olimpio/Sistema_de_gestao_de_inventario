@@ -2,9 +2,27 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const session = await auth();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get("status") || "";
+    const search = searchParams.get("search") || "";
+
+    const where: Record<string, unknown> = {};
+    if (status) where.status = status;
+    if (search) {
+      where.purchaseOrder = {
+        supplier: { name: { contains: search, mode: "insensitive" } },
+      };
+    }
+
     const payables = await prisma.accountsPayable.findMany({
+      where,
       include: {
         purchaseOrder: {
           select: {
@@ -28,6 +46,7 @@ export async function GET() {
     );
   }
 }
+
 
 export async function PUT(request: Request) {
   try {

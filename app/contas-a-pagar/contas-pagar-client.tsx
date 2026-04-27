@@ -1,47 +1,46 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Wallet, CheckCircle } from "lucide-react";
+import { useState } from "react";
+import { Wallet, CheckCircle, Search } from "lucide-react";
+import { toast } from "sonner";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import PageHeader from "../components/page-header";
 import StatsCard from "../components/stats-card";
 import AnimSection from "../components/anim-section";
 import DataTable, { Column } from "../components/data-table";
 import StatusBadge from "../components/status-badge";
+import ConfirmModal from "../components/confirm-modal";
 import { Payable } from "@/lib/types";
 import ExportButton from "../components/export-button";
+import { usePayables } from "@/app/hooks/use-payables";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function ContasAPagarClient({
   isViewer,
 }: {
   isViewer: boolean;
 }) {
-  const [payables, setPayables] = useState<Payable[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const [payConfirmId, setPayConfirmId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
 
-  const fetchPayables = async () => {
-    const res = await fetch("/api/accounts-payable");
-    const data = await res.json();
-    setPayables(data);
-    setLoading(false);
-  };
+  const { data: payables = [], isLoading } = usePayables({ status: statusFilter, search });
 
-  useEffect(() => {
-    fetchPayables();
-  }, []);
-
-  const markAsPaid = async (id: string) => {
-    if (!confirm("Confirmar pagamento desta conta?")) return;
+  const handlePayConfirm = async () => {
+    if (!payConfirmId) return;
     const res = await fetch("/api/accounts-payable", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
+      body: JSON.stringify({ id: payConfirmId }),
     });
     if (res.ok) {
-      fetchPayables();
+      setPayConfirmId(null);
+      queryClient.invalidateQueries({ queryKey: ["payables"] });
+      toast.success("Conta marcada como paga!");
     } else {
       const data = await res.json();
-      alert(data.error || "Erro ao marcar como pago");
+      toast.error(data.error || "Erro ao marcar como pago");
     }
   };
 
@@ -111,7 +110,7 @@ export default function ContasAPagarClient({
         !isViewer && (
           <div style={{ display: "flex", justifyContent: "flex-end" }}>
             <button
-              onClick={() => markAsPaid(p.id)}
+              onClick={() => setPayConfirmId(p.id)}
               title="Marcar como Pago"
               style={{
                 display: "flex",
@@ -168,13 +167,59 @@ export default function ContasAPagarClient({
       </AnimSection>
 
       <AnimSection delay={200}>
+        {/* Filter bar */}
+        <div
+          style={{
+            display: "flex",
+            gap: "10px",
+            alignItems: "center",
+            flexWrap: "wrap",
+            marginBottom: "16px",
+          }}
+        >
+          <div className="search-box" style={{ flex: 1, minWidth: "180px" }}>
+            <Search size={15} color="var(--text-muted)" />
+            <input placeholder="Buscar fornecedor..." value={search} onChange={(e) => setSearch(e.target.value)} />
+          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            style={{
+              padding: "9px 12px",
+              borderRadius: "var(--radius-md)",
+              border: "1px solid var(--border-color)",
+              background: "var(--bg-input)",
+              color: "var(--text-primary)",
+              fontSize: "13px",
+              cursor: "pointer",
+            }}
+          >
+            <option value="">Todos os status</option>
+            <option value="PENDENTE">Pendente</option>
+            <option value="PAGO">Pago</option>
+          </select>
+          {(search || statusFilter) && (
+            <button className="btn-ghost" style={{ padding: "7px 12px", fontSize: "12px" }} onClick={() => { setSearch(""); setStatusFilter(""); }}>
+              Limpar
+            </button>
+          )}
+        </div>
         <DataTable
           data={payables}
           columns={columns}
-          isLoading={loading}
+          isLoading={isLoading}
           emptyMessage="Nenhuma conta a pagar registrada"
         />
       </AnimSection>
+
+      <ConfirmModal
+        isOpen={!!payConfirmId}
+        onClose={() => setPayConfirmId(null)}
+        onConfirm={handlePayConfirm}
+        title="Confirmar Pagamento"
+        message="Tem certeza que deseja marcar esta conta como paga?"
+        confirmText="Confirmar Pagamento"
+      />
     </div>
   );
 }

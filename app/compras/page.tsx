@@ -1,67 +1,41 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Plus, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
+import { useSession } from "next-auth/react";
 import Modal from "../components/modal";
+import ConfirmModal from "../components/confirm-modal";
 import PageHeader from "@/app/components/page-header";
 import OrderTable from "./components/order-table";
 import OrderForm from "./components/order-form";
 import OrderDetailModal from "./components/order-detail-modal";
-import { Product, PurchaseOrder, Supplier } from "@/lib/types";
+import { PurchaseOrder } from "@/lib/types";
+import { usePurchaseOrders } from "@/app/hooks/use-purchase-orders";
+import { useSuppliers } from "@/app/hooks/use-suppliers";
+import { useProducts } from "@/app/hooks/use-products";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function ComprasPage() {
-  const [orders, setOrders] = useState<PurchaseOrder[]>([]);
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: session } = useSession();
+  const isViewer = (session?.user as any)?.role === "VISUALIZADOR";
+  const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
   const [detailOrder, setDetailOrder] = useState<PurchaseOrder | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
-  const fetchOrders = async () => {
-    const url = statusFilter
-      ? `/api/purchase-orders?status=${statusFilter}`
-      : "/api/purchase-orders";
-    const res = await fetch(url);
-    const data = await res.json();
-    setOrders(data);
-    setLoading(false);
-  };
+  const { data: orders = [], isLoading } = usePurchaseOrders(statusFilter);
+  const { data: suppliers = [] } = useSuppliers();
+  const { data: productsData } = useProducts({ limit: 100 });
+  const products = productsData?.data || [];
 
-  useEffect(() => {
-    fetchOrders();
-    fetch("/api/suppliers")
-      .then((r) => r.json())
-      .then(setSuppliers);
-    fetch("/api/products?limit=100")
-      .then((r) => r.json())
-      .then((data) => {
-        // Handle paginated response format
-        if (data.data && Array.isArray(data.data)) {
-          setProducts(data.data);
-        } else if (Array.isArray(data)) {
-          setProducts(data);
-        } else {
-          setProducts([]);
-        }
-      })
-      .catch((err) => {
-        console.error("Error fetching products:", err);
-        setProducts([]);
-      });
-  }, []);
-
-  useEffect(() => {
-    fetchOrders();
-  }, [statusFilter]);
-
-  const handleSubmit = async (data: any) => {
-    // Basic validation
-    const items = data.items
-      .filter((i: any) => i.productId && i.quantity && i.unitPrice)
-      .map((i: any) => ({
+  const handleSubmit = async (data: Record<string, unknown>) => {
+    const rawItems = data.items as Array<Record<string, string>>;
+    const items = rawItems
+      .filter((i) => i.productId && i.quantity && i.unitPrice)
+      .map((i) => ({
         productId: i.productId,
         quantity: parseInt(i.quantity),
         unitPrice: parseFloat(i.unitPrice),
@@ -80,7 +54,7 @@ export default function ComprasPage() {
 
     if (res.ok) {
       setModalOpen(false);
-      fetchOrders();
+      queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
       toast.success("Ordem de compra criada com sucesso!");
     } else {
       const resData = await res.json();
@@ -95,7 +69,8 @@ export default function ComprasPage() {
       body: JSON.stringify({ status }),
     });
     if (res.ok) {
-      fetchOrders();
+      queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["products"] });
       setDetailOrder(null);
       toast.success("Status atualizado com sucesso!");
     } else {
@@ -104,13 +79,14 @@ export default function ComprasPage() {
     }
   };
 
-  const deleteOrder = async (id: string) => {
-    if (!confirm("Excluir esta ordem de compra?")) return;
-    const res = await fetch(`/api/purchase-orders/${id}`, {
+  const handleDeleteConfirm = async () => {
+    if (!deleteId) return;
+    const res = await fetch(`/api/purchase-orders/${deleteId}`, {
       method: "DELETE",
     });
     if (res.ok) {
-      fetchOrders();
+      setDeleteId(null);
+      queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
       toast.success("Ordem excluída com sucesso!");
     } else {
       const data = await res.json();
@@ -145,40 +121,42 @@ export default function ComprasPage() {
               <option value="RECEBIDA">Recebida</option>
               <option value="CANCELADA">Cancelada</option>
             </select>
-            <button
-              onClick={() => {
-                setError("");
-                setModalOpen(true);
-              }}
-              className="accent-button"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "10px 18px",
-                borderRadius: "var(--radius-md)",
-                background:
-                  "linear-gradient(135deg, var(--accent-primary), #a855f7)",
-                color: "white",
-                fontSize: "13px",
-                fontWeight: 600,
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              <Plus size={18} />
-              Nova Ordem
-            </button>
+            {!isViewer && (
+              <button
+                onClick={() => {
+                  setError("");
+                  setModalOpen(true);
+                }}
+                className="accent-button"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "10px 18px",
+                  borderRadius: "var(--radius-md)",
+                  background:
+                    "linear-gradient(135deg, var(--accent-primary), #a855f7)",
+                  color: "white",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                <Plus size={18} />
+                Nova Ordem
+              </button>
+            )}
           </div>
         }
       />
 
       <OrderTable
         orders={orders}
-        loading={loading}
+        loading={isLoading}
         onView={setDetailOrder}
         onUpdateStatus={updateStatus}
-        onDelete={deleteOrder}
+        onDelete={(id) => setDeleteId(id)}
       />
 
       <Modal
@@ -199,6 +177,16 @@ export default function ComprasPage() {
       <OrderDetailModal
         order={detailOrder}
         onClose={() => setDetailOrder(null)}
+      />
+
+      <ConfirmModal
+        isOpen={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        onConfirm={handleDeleteConfirm}
+        title="Excluir Ordem de Compra"
+        message="Tem certeza que deseja excluir esta ordem? Esta ação não pode ser desfeita."
+        isDestructive
+        confirmText="Excluir"
       />
     </div>
   );
